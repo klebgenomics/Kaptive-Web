@@ -9,26 +9,27 @@
 
 Kaptive reports information about capsular (K) loci found in genome assemblies.
 
-Given a novel genome and a database of known K-loci, Kaptive will help you to decide whether your sample has a known or a novel K-locus. It carries out the following for each input genome assembly:
+Given a novel genome and a database of known K-loci, <b>Kaptive</b> will help you to decide whether your sample has a known or a novel K-locus. It carries out the following for each input genome assembly:
 * BLAST for all known K-locus nucleotide sequences (using `blastn`) to identify the best match ('best' defined as having the highest coverage).
 * Extract the region(s) of the assembly which correspond to the BLAST hits (i.e. the K-locus sequence in the assembly) and save it to a FASTA file.
 * BLAST for all known K-locus genes (using `tblastn`) to identify which expected genes (genes in the best matching K-locus) are present/missing and whether any unexpected genes (genes from other K-loci) are present.
 * Visualise the results on-screen in the form of images and tables.
 * Summarise the results in downloadable table and json files.
 
-Kaptive will indicate the confidence of the K-locus match.
+<b>Kaptive</b> will indicate the confidence of the K-locus match.
 
-In cases where your input assembly closely matches a known K locus, Kaptive will indicate a "Perfect" or "Very High" confidence match. 
-If Kaptive has lower confidence in the match it may mean that your assembly contains a novel K-locus, a deletion or an insertion sequence variant of a known locus. Alternatively it may mean that your input assembly was not of sufficient quality to make a confident match (e.g. if it is very fragmented).
+In cases where your input assembly closely matches a known K-locus, <b>Kaptive</b> will indicate a "Perfect" or "Very High" confidence match. 
 
-Kaptive cannot reliably extract or annotate K-locus sequences for totally novel loci – if you think you have a novel K-locus you should investigate this further. If you think you may have a variant of a known locus, and you haven't already done so, you could try rerunning Kaptive with the appropriate variant database.  
+If <b>Kaptive</b> has lower confidence in the match it may mean that your assembly contains a novel K-locus, a deletion or an insertion sequence variant of a known locus. Alternatively it may mean that your input assembly was not of sufficient quality to make a confident match (e.g. if it is very fragmented).
 
-If you do have a novel type or novel variant of a known type and you would like it to be added to the database, [please let us know](https://github.com/kelwyres/Kaptive-Web/issues).
+<b>Kaptive</b> cannot reliably extract or annotate K-locus sequences for totally novel loci – if you think you have a novel K-locus you should investigate this further. If you think you may have a variant of a known locus, and you haven't already done so, you could try rerunning Kaptive with the appropriate variant database.  
 
-Read more about Kaptive and how it was used to classify K-loci in Klebsiella here:
+If you do have a novel K-locus or novel variant and you would like it to be added to the database, [please let us know](https://github.com/kelwyres/Kaptive-Web/issues).
+
+Read more about <b>Kaptive</b> and how it was used to classify K-loci in <i>Klebsiella</i> here:
 [Wyres, K. et al. Identification of Klebsiella capsule synthesis loci from whole genome data. Microbial Genomics (2016).](http://mgen.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000102)
 
-Download the command-line version of Kaptive [here](https://github.com/katholt/kaptive) (enables advanced options). 
+Download the command-line version of <b>Kaptive</b> [here](https://github.com/katholt/kaptive) (enables advanced options). 
 
 ## Table of Contents
 
