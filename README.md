@@ -1,14 +1,16 @@
 <p align="center"><img src="extras/kaptive_logo.png" alt="Kaptive" width="400"></p>
 
 
-Welcome to the documentation page for Kaptive Web.
+
+
+## Welcome to the documentation page for Kaptive Web.
 
 Kaptive reports information about capsular (K) loci found in genome assemblies.
 
-Given a novel genome and a database of known K loci, Kaptive will help you to decide whether your sample has a known or a novel K locus. It carries out the following for each input genome assembly:
+Given a novel genome and a database of known K-loci, Kaptive will help you to decide whether your sample has a known or a novel K-locus. It carries out the following for each input genome assembly:
 * BLAST for all known K-locus nucleotide sequences (using `blastn`) to identify the best match ('best' defined as having the highest coverage).
-* Extract the region(s) of the assembly which correspond to the BLAST hits (i.e. the K locus sequence in the assembly) and save it to a FASTA file.
-* BLAST for all known K-locus genes (using `tblastn`) to identify which expected genes (genes in the best matching K locus) are present/missing and whether any unexpected genes (genes from other K loci) are present.
+* Extract the region(s) of the assembly which correspond to the BLAST hits (i.e. the K-locus sequence in the assembly) and save it to a FASTA file.
+* BLAST for all known K-locus genes (using `tblastn`) to identify which expected genes (genes in the best matching K-locus) are present/missing and whether any unexpected genes (genes from other K-loci) are present.
 * Visualise the results on-screen in the form of images and tables
 * Summarise the results in downloadable table and json files
 
@@ -21,7 +23,7 @@ If you do have a novel type or novel variant of a known type and you would like 
 Read more about Kaptive and how it was used to classify K-loci in Klebsiella here:
 [Wyres, K. et al. Identification of Klebsiella capsule synthesis loci from whole genome data. Microbial Genomics (2016).](http://mgen.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000102)
 
-Download and the command-line version of Kaptive [here](https://github.com/katholt/kaptive) (enables advanced options). 
+Download the command-line version of Kaptive [here](https://github.com/katholt/kaptive) (enables advanced options). 
 
 ## Table of Contents
 
