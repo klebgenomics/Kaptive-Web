@@ -7,7 +7,7 @@
 
 ## Welcome to the documentation page for Kaptive Web.
 
-Kaptive reports information about capsular (K) loci found in genome assemblies.
+<b>Kaptive</b> reports information about capsular (K) loci found in genome assemblies.
 
 Given a novel genome and a database of known K-loci, <b>Kaptive</b> will help you to decide whether your sample has a known or a novel K-locus. It carries out the following for each input genome assembly:
 * BLAST for all known K-locus nucleotide sequences (using `blastn`) to identify the best match ('best' defined as having the highest coverage).
@@ -48,18 +48,18 @@ Download the command-line version of <b>Kaptive</b> [here](https://github.com/ka
 
 ## Input assemblies
 
-Kaptive takes as input one or more pre-assembled bacterial genomes. We use [Unicycler](https://github.com/rrwick/Unicycler) to generate high quality short-read or hybrid assemblies, but you can use your favourite assembly program.
+<b>Kaptive</b> takes as input one or more pre-assembled bacterial genomes. We use [Unicycler](https://github.com/rrwick/Unicycler) to generate high quality short-read or hybrid assemblies, but you can use your favourite assembly program.
 Assemblies can be uploaded in FASTA or zipped FASTA format. Or you can upload multiple assemblies in a zipped directory (one file per sample).
 
 ## Results
 
-When your job(s) are completed the results will be shown on screen and will be available for access for up to 7 days - so make sure to note your token!
+When your job(s) are completed the results will be shown on-screen and will be available for access for up to 7 days - so make sure to note your token!
 You can also download a summary results table, a summary json file and/or the individual K-locus FASTA sequences extracted from your input assemblies.
 
 Find more details about these outputs [here](https://github.com/katholt/kaptive#output-files).
 
 ## Match confidence 
-This is a categorical measure of match quality optimised for use with the primary Klebsiella K-locus database:
+This is a categorical measure of match quality, optimised for use with the primary <i>Klebsiella</i> K-locus database:
 * `Perfect` = the K-locus was found in a single piece with 100% coverage and 100% identity.
 * `Very high` = the K-locus was found in a single piece with ≥99% coverage and ≥95% identity, with no missing genes and no extra genes.
 * `High` = the K-locus was found in a single piece with ≥99% coverage, with ≤ 3 missing genes and no extra genes.
@@ -67,7 +67,7 @@ This is a categorical measure of match quality optimised for use with the primar
 * `Low` = the K-locus was found in a single piece or with ≥90% coverage, with ≤ 3 missing genes and ≤ 2 extra genes.
 * `None` = did not qualify for any of the above.
 
-WARNING: If you use the variant Klebsiella K-locus database please inspect your results carefully and decide for yourself what constitutes a confident match! 
+WARNING: If you use the variant <i>Klebsiella</i> K-locus database please inspect your results carefully and decide for yourself what constitutes a confident match! 
 
 ## Example results and interpretation
 
@@ -83,12 +83,12 @@ WARNING: If you use the variant Klebsiella K-locus database please inspect your 
 
 ## Databases available in Kaptive Web
 
-Currently only Klebsiella K-locus databases are available in Kaptive Web. You can run the [command-line version of Kaptive](https://github.com/katholt/kaptive) with any appropriately formatted database of your own.
-If you have a locus database that you would like to be added to Kaptive Web for use by yourself and others in the community, [please get in touch](https://github.com/kelwyres/Kaptive-Web/issues).
+Currently only <i>Klebsiella</i> K-locus databases are available in <b>Kaptive Web</b>. You can run the [command-line version of Kaptive](https://github.com/katholt/kaptive) with any appropriately formatted database of your own.
+If you have a locus database that you would like to be added to <b>Kaptive Web</b> for use by yourself and others in the community, [please get in touch](https://github.com/kelwyres/Kaptive-Web/issues).
 
-#### Klebsiella K-locus databases
+#### <i>Klebsiella</i> K-locus databases
 
-The primary reference database comprises full-length (<i>galF</i> to <i>ugd</i>) annotated sequences for each distinct Klebsiella K-locus, where available:
+The primary reference database comprises full-length (<i>galF</i> to <i>ugd</i>) annotated sequences for each distinct <i>Klebsiella</i> K-locus, where available:
 * KL1 - KL77 correspond to the loci associated with each of the 77 serologically defined K-type references.
 * KL101 and above are defined from DNA sequence data on the basis of gene content.
 Note that insertion sequences (IS) are excluded from this database since we assume that the ancestral sequence was likely IS-free and IS transposase genes are not specific to the K-locus.
@@ -104,7 +104,7 @@ WARNING: If you use the variants database please inspect your results carefully 
 
 ## Citation
 
-If you use Kaptive in your research, please cite this paper:
+If you use <b>Kaptive Web</b> in your research, please cite this paper:
 [Wyres, K. et al. Identification of Klebsiella capsule synthesis loci from whole genome data. bioRxiv (2016).](http://biorxiv.org/content/early/2016/08/24/071415)
 
 ## License
