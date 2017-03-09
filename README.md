@@ -41,7 +41,7 @@ Download the command-line version of <b>Kaptive</b> [here](https://github.com/ka
   * [Broken assembly](https://github.com/kelwyres/Kaptive-Web#broken-assembly)
   * [Poor match - possible novel locus](https://github.com/kelwyres/Kaptive-Web#poor-match---possible-novel-locus)
   * [Poor match - possible novel variant](https://github.com/kelwyres/Kaptive-Web#poor-match---possible-novel-variant)
-* [FAQs](https://github.com/kelwyres/Kaptive-Web#FAQs)
+* [FAQs](https://github.com/kelwyres/Kaptive-Web#faqs)
 * [Citation](https://github.com/kelwyres/Kaptive-Web#citation)
 * [License](https://github.com/kelwyres/Kaptive-Web#license)
  
