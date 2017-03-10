@@ -33,6 +33,7 @@ Download the command-line version of <b>Kaptive</b> [here](https://github.com/ka
 
 ## Table of Contents
 
+* [Installation](https://github.com/kelwyres/Kaptive-Web#installation)
 * [Input assemblies](https://github.com/kelwyres/Kaptive-Web#input-assemblies)
 * [Results](https://github.com/kelwyres/Kaptive-Web#results)
 * [Example results and interpretation](https://github.com/kelwyres/Kaptive-Web#example-results-and-interpretation)
@@ -45,6 +46,27 @@ Download the command-line version of <b>Kaptive</b> [here](https://github.com/ka
 * [Citation](https://github.com/kelwyres/Kaptive-Web#citation)
 * [License](https://github.com/kelwyres/Kaptive-Web#license)
  
+
+## Installation
+* Download Web2Py framework from [here](http://www.web2py.com/). Installation guide can be found [here](http://web2py.com/books/default/chapter/29/13/deployment-recipes).
+* The default work directories ````/opt/kaptvie```` structure. These settings may be modified in ````settings.ini```` file.
+
+````
+.
+├── kaptive.py
+├── queue
+│   └── queue
+├── reference_database
+│   ├── 1-Klebsiella_k_locus_primary_reference.gbk
+│   ├── 2-Klebsiella_k_locus_variant_reference.gbk
+│   └── wzi_wzc_db.fasta
+└── uploads
+````  
+
+* Install the dependencies for <b>Kaptive</b> command-line version. The installation guide can be found [here](https://github.com/katholt/Kaptive#installation).
+* Download <b>Kaptive</b> command-line version from [here](https://github.com/katholt/kaptive), and copy the files to relevant directory. 
+* Install ````pygal````, ````pillow```` with ````pip````.
+* Install ````imagemagick````, installation guide can be found [here](https://www.imagemagick.org/script/binary-releases.php).
 
 ## Input assemblies
 
