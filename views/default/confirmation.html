@@ -1,0 +1,400 @@
+{{extend 'layout.html'}}
+<head>
+    <link href="{{=URL('static','css/font-awesome.min.css')}}" rel="stylesheet" />
+    <!--[if IE 6]><link href="default_ie6.css" rel="stylesheet" type="text/css" /><![endif]-->
+</head>
+{{if session.status == 1:}}
+<h4>
+    Your job has been successfully submitted.
+</h4>
+{{pass}}
+
+<h2>
+    Job Overview:
+</h2>
+
+<style type="text/css">
+    .tbb td{
+        font-family:Arial, sans-serif;
+        font-size:14px;
+        padding:5px 6px;
+        border: 1px none;
+        overflow:hidden;
+        word-break:normal;
+    }
+    .tbb th{
+        font-family:Arial, sans-serif;
+        font-size:14px;font-weight:normal;
+        padding:5px 6px;
+        border: 1px none;
+        overflow:hidden;
+        word-break:normal;
+    }
+    .table {
+        width: 70%;
+    }
+    @media only screen and (max-width: 1500px), only screen and (max-device-width: 1500px) {
+        .table {
+        width: 100%;
+        }
+    }
+</style>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th><strong></strong></th>
+            <th><strong></strong></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Token</strong></td>
+            <td>{{=meta_token}} <br> {{if session.status == 1:}}<strong><font color="red">Please take a note of this token, you may use it to retrieve the result in the next 7 days.</font></strong>{{pass}}</td>
+        </tr>
+        {{if meta_job_name != "":}}
+        <tr>
+            <td><strong>Job name</strong></td>
+            <td>{{=meta_job_name}}</td>
+        </tr>
+        {{pass}}
+        <tr>
+            <td><strong>Assembly file</strong></td>
+            <td>{{=meta_assembly}}</td>
+        </tr>
+        <tr>
+            <td><strong>Reference database</strong></td>
+            <td>{{=meta_reference}}</td>
+        </tr>
+        <tr>
+            <td><strong>Time submitted</strong></td>
+            <td>{{=meta_time_stamp}}</td>
+        </tr>
+        <tr>
+            <td><strong>Total number of jobs</strong></td>
+            <td>{{=total_jobs}}</td>
+        </tr>
+        <tr>
+            <td><strong>Jobs pending</strong></td>
+            <td>{{=pending_jobs}}</td>
+        </tr>
+        <tr>
+            <td><strong>Jobs running</strong></td>
+            <td>{{=running_jobs}}</td>
+        </tr>
+        <tr>
+            <td><strong>Jobs completed</strong></td>
+            <td>{{=succeeded_jobs}}</td>
+        </tr>
+        <tr>
+            <td><strong>Jobs failed</strong></td>
+            <td>{{=failed_jobs}}</td>
+        </tr>
+    </tbody>
+</table>
+
+<p style="padding-top:30px;">&nbsp;</p>
+
+<font color="red"><strong>{{=content}}</strong></font>
+
+{{if result_status != 1:}}
+<script type="text/javascript">
+    window.setTimeout(function(){ document.location.reload(true); }, {{=int(refresh_time)}});
+</script>
+{{pass}}
+
+{{if succeeded_jobs > 0:}}
+<h2>
+    Job Result:
+</h2>
+
+{{if ('result_data' in locals()) and ('result_data' in globals()) and result_data is not None:}}
+<table class="tbb table table-expandable">
+    <thead>
+        <tr>
+            <th><strong>Sample</strong></th>
+            <th><strong>Results</strong></th>
+            <th></th>
+            <th></th>
+            <th><strong><a href="{{=URL('download',args=(meta_token, 'result', 'kaptive_results_table.txt'))}}" download="{{='kaptive_results_table.txt'}}">Download raw results table (TXT)</a></strong></th>
+            <th><strong><a href="{{=URL('download',args=(meta_token, 'result', 'kaptive_results.json'))}}" download="{{='kaptive_results.json'}}">Download raw results table (JSON)</a></strong></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{for i in range(0, len(result_data)):}}
+        <tr>
+            {{
+                if result_data[i]["Best match"]["Match confidence"] == "Perfect":
+                    title_bg="#66bd63"
+                elif result_data[i]["Best match"]["Match confidence"] == "Very high":
+                    title_bg="#a6d96a"
+                elif result_data[i]["Best match"]["Match confidence"] == "High":
+                    title_bg="#d9ef8b"
+                elif result_data[i]["Best match"]["Match confidence"] == "Good":
+                    title_bg="#fee08b"
+                elif result_data[i]["Best match"]["Match confidence"] == "Low":
+                    title_bg="#fdae61"
+                elif result_data[i]["Best match"]["Match confidence"] == "None":
+                    title_bg="#f46d43"
+                else:
+                    title_bg="#ffffff"
+                pass}}
+            <td bgcolor={{=title_bg}}><strong>{{=result_data[i]["Assembly name"]}}</strong></td>
+            <td bgcolor={{=title_bg}}><strong>Best K-locus: </strong>{{=result_data[i]["Best match"]["Locus name"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>Match confidence <i class="fa fa-info-circle" title="Match Confidence"></i> : </strong>{{=result_data[i]["Best match"]["Match confidence"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>Cov <i class="fa fa-info-circle" title="Coverage"></i> : </strong>{{=result_data[i]["blastn result"]["Coverage"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>ID <i class="fa fa-info-circle" title="Identification"></i> : </strong>{{=result_data[i]["blastn result"]["Identity"]}}</td>
+            {{
+                gene_total = len(result_data[i]["K locus genes"])
+                gene_found = 0
+                gene_not_found = 0
+                gene_outside_locus = 0
+                gene_outside_locus_dict = {}
+                for j in range(0, len(result_data[i]["K locus genes"])):
+                    if result_data[i]["K locus genes"][j]["Result"] == "Found in locus":
+                        gene_found += 1
+                    elif result_data[i]["K locus genes"][j]["Result"] == "Not found":
+                        gene_not_found += 1
+                    elif result_data[i]["K locus genes"][j]["Result"] == "Found outside locus":
+                        gene_outside_locus += 1
+                        if "Gene" not in result_data[i]["K locus genes"][j]["Reference"]:
+                            gene_outside_locus_dict.update({result_data[i]["K locus genes"][j]["Name"]: result_data[i]["K locus genes"][j]["tblastn result"]["Coverage"]})
+                        else:
+                            gene_outside_locus_dict.update({result_data[i]["K locus genes"][j]["Reference"]["Gene"]: result_data[i]["K locus genes"][j]["tblastn result"]["Coverage"]})
+                        pass
+                    pass
+                pass
+                expected_genes = str(gene_found) + " / " + str(gene_total)
+                missing_genes = str(gene_total - gene_found) + " / " + str(gene_total)
+            }}
+            <td bgcolor={{=title_bg}}><strong>Genes: </strong>{{=expected_genes}}</td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <table class="tbb table"style="width:100%;">
+                    <tr>
+                        <td colspan="6"><strong>{{=result_data[i]["Best match"]["Locus name"]}} reference <i class="fa fa-info-circle" title="Reference"></i> :</strong></td>
+                    </tr>
+                    <tr>
+                        {{assemble_name = result_data[i]["Assembly name"]}}
+                        <td colspan="6" style="width:100%;">
+                            <img src="{{=URL('get_png', args=(meta_token, assemble_name))}}" style="width:100%">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6">
+                            <table>
+                                <!-- For Other genes in locus -->
+                                <td style="vertical-align:top">
+                                    <table class="table-expandable">
+                                        <tbody>
+                                            <tr>
+                                                {{other_gene_in_dict = result_data[i]["Other genes in locus"]}}
+                                                <td style="white-space:nowrap"><strong>Other genes found in locus <i class="fa fa-info-circle" title="Other genes found in locus"></i> : </strong></td>
+                                                <td style="vertical-align:bottom">{{=len(other_gene_in_dict)}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    {{if len(other_gene_in_dict) > 0 :}}
+                                                    <table>
+                                                        <tr>
+                                                            <td style="border-style:none" bgcolor="#E5E8E8">gene</td>
+                                                            <td style="border-style:none; white-space:nowrap" bgcolor="#E5E8E8" >identity (%)</td>
+                                                        </tr>
+                                                        {{for key in other_gene_in_dict:}}
+                                                        <tr>
+                                                            <td style="border-style:none; white-space:nowrap">{{=key}}</td>
+                                                            <td style="border-style:none" align="right">{{=str(other_gene_in_dict[key]["tblastn result"]["Identity"]).translate(None, '%')}}</td>
+                                                        </tr>
+                                                        {{pass}}
+                                                    </table>
+                                                    {{else:}}N/A{{pass}}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+
+                                <!-- For Other genes outside locus -->
+                                <td style="vertical-align:top">
+                                    <table class="table-expandable">
+                                        <tbody>
+                                            <tr>
+                                                {{other_gene_outside_dict = result_data[i]["Other genes outside locus"]}}
+                                                <td style="white-space:nowrap"><strong>Other genes outside locus <i class="fa fa-info-circle" title="Other genes outside locus"></i> : </strong></td>
+                                                <td style="vertical-align:bottom">{{=len(other_gene_outside_dict)}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    {{if len(other_gene_outside_dict) > 0:}}
+                                                    <table>
+                                                        <tr>
+                                                            <td style="border-style:none" bgcolor="#E5E8E8">gene</td>
+                                                            <td style="border-style:none; white-space:nowrap" bgcolor="#E5E8E8">identity (%)</td>
+                                                        </tr>
+                                                        {{for key in other_gene_outside_dict:}}
+                                                        <tr>
+                                                            <td style="border-style:none; white-space:nowrap">{{=key}}</td>
+                                                            <td style="border-style:none" align="right">{{=str(other_gene_outside_dict[key]["tblastn result"]["Identity"]).translate(None, '%')}}</td>
+                                                        </tr>
+                                                        {{pass}}
+                                                    </table>
+                                                    {{else:}}N/A{{pass}}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+
+                                <!-- For Expected genes outside locus -->
+                                {{if gene_outside_locus > 0:}}
+                                <td style="vertical-align:top">
+                                    <table class="table-expandable">
+                                        <tbody>
+                                            <tr>
+                                                <td style="white-space:nowrap"><strong>Expected genes outside locus <i class="fa fa-info-circle" title="Expected genes outside locus"></i> : </strong></td>
+                                                <td style="vertical-align:bottom">{{=gene_outside_locus}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <table>
+                                                        <tr>
+                                                            <td style="border-style:none" bgcolor="#E5E8E8">gene</td>
+                                                            <td style="border-style:none; white-space:nowrap" bgcolor="#E5E8E8">identity (%)</td>
+                                                        </tr>
+                                                        {{for key in gene_outside_locus_dict:}}
+                                                        <tr>
+                                                            <td style="border-style:none; white-space:nowrap">{{=key}}</td>
+                                                            <td style="border-style:none">{{=str(gene_outside_locus_dict[key]).translate(None, '%')}}</td>
+                                                        </tr>
+                                                        {{pass}}
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                {{pass}}
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="padding-left:12px;">
+                            <table>
+                                <tr>
+                                    <td><strong>Allelic type <i class="fa fa-info-circle" title="Allelic Type"></i> :</strong></td>
+                                    <td width=90px></td>
+                                    {{
+                                        allelic_typing_dict = result_data[i]["Allelic_typing"]
+                                        for key in allelic_typing_dict:
+                                    }}
+                                    <td>{{=key + ':'}}</td>
+                                                {{
+                                                    allele = allelic_typing_dict[key]["Allele"]
+                                                    if ("Perfect match" not in allelic_typing_dict[key] or not allelic_typing_dict[key]["Perfect match"]) and allele !="Not found":
+                                                            allele = str(allele) + '*'
+                                                    pass
+                                                }}
+                                    <td>{{=allele}}</td>
+                                    {{pass}}
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6">
+                            <table>
+                                <tr>
+                                    {{assemble_name = result_data[i]["Assembly name"]}}
+                                    <td width=500px style="white-space:nowrap">
+                                        <table>
+                                            <tr>
+                                                <td><strong>Assembly pieces <i class="fa fa-info-circle" title="Assembly pieces"></i> :</strong></td>
+                                                <td width=50px></td>
+                                                <td><a href="{{=URL('download',args=(meta_token, str(i), 'kaptive_results_' + assemble_name + '.fasta'))}}" download="{{=('kaptive_results_' + assemble_name + '.fasta')}}">Download as FASTA</a></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td><strong>{{=result_data[i]["Best match"]["Locus name"]}} reference size <i class="fa fa-info-circle" title="Reference size"></i> :</strong></td>
+                                    <td>{{=result_data[i]["Best match"]["Reference"]["Length"]}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:top;white-space:nowrap;">
+                            {{if len(result_data[i]["blastn result"]["Locus assembly pieces"]) > 0:}}
+                            <table>
+                                <tr>
+                                    <td style="border-style:none" bgcolor="#E5E8E8">Contig Name</td>
+                                    <td style="border-style:none" bgcolor="#E5E8E8">Start Position</td>
+                                    <td style="border-style:none" bgcolor="#E5E8E8">End Position</td>
+                                    <td style="border-style:none" bgcolor="#E5E8E8">Length</td>
+                                </tr>
+                                {{
+                                        for j in range(0, len(result_data[i]["blastn result"]["Locus assembly pieces"])):
+                                            contig_name_raw = result_data[i]["blastn result"]["Locus assembly pieces"][j]["Contig name"]
+                                            contig_name_parts = contig_name_raw.split('_')
+                                            if len(contig_name_parts) > 5 and (contig_name_parts[0] == 'NODE' or contig_name_parts[0] == 'EDGE') and contig_name_parts[2] == 'length' and contig_name_parts[4] == 'cov':
+                                                contig_name = 'NODE_' + contig_name_raw.split('_')[1]
+                                            else:
+                                                contig_name = contig_name_raw.split()[0]
+                                            pass
+                                    }}
+                                <tr>
+                                    <td style="border-style:none">{{=contig_name}}</td>
+                                    <td style="border-style:none">{{=result_data[i]["blastn result"]["Locus assembly pieces"][j]["Contig start position"]}}</td>
+                                    <td style="border-style:none">{{=result_data[i]["blastn result"]["Locus assembly pieces"][j]["Contig end position"]}}</td>
+                                    <td style="border-style:none">{{=result_data[i]["blastn result"]["Locus assembly pieces"][j]["Length"]}}</td>
+                                </tr>
+                                {{pass}}
+                            </table>
+                            {{else:}}N/A{{pass}}
+                        </td>
+                                    <td  style="vertical-align:top"><strong>Length discrepancy <i class="fa fa-info-circle" title="Length discrepancy"></i> :</strong></td>
+                                    <td  style="vertical-align:top">{{=result_data[i]["blastn result"]["Length discrepancy"]}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        {{pass}}
+    </tbody>
+</table>
+{{else:}}
+    <font color="red"><strong>Processing your job, it usually takes 10 minutes for each assembly file to complete. This page will refresh every {{=str(refresh_time / 1000)}} seconds until the process is completed. Please do not close this page or start a new job.</strong></font>
+    {{print(' (Confirmation) Result data not available.')}}
+    <script type="text/javascript">
+        window.setTimeout(function(){ document.location.reload(true); }, {{=int(refresh_time / 10)}});
+    </script>
+{{pass}}
+
+
+<p style="padding-top:30px;">&nbsp;</p>
+{{pass}}
+{{if failed_jobs > 0:}}
+<h2>
+    Errors:
+</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th><strong>Fasta file</strong></th>
+            <th><strong>Error message</strong></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{for i in error_dict:}}
+        <tr>
+            <td><strong>{{=i['Job name']}}</strong></td>
+            <td><strong><font color="red">{{=i['Error']}}</font></strong></td>
+        </tr>
+        {{pass}}
+    </tbody>
+</table>
+
+{{pass}}
+
+<p style="padding-top:30px;">&nbsp;</p>
+
+<p></p>

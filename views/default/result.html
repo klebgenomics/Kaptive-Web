@@ -1,0 +1,11 @@
+{{extend 'layout.html'}}
+
+<h2>
+    Please enter your token to retrieve the result.
+</h2>
+<br><br>
+{{=form}}
+
+{{if token_status == 1:}}
+<font color="red"><strong>Invalid Token. Please try again.</strong></font>
+{{pass}}
