@@ -1,6 +1,9 @@
 <p align="center"><img src="extras/kaptive_logo.png" alt="Kaptive" width="400"></p>
 
-## Installation
+## Installing Kaptive Web
+
+Follow these instructions to install <b>Kaptive Web</b>. To install the command-line version visit the main [Kaptive page](https://github.com/katholt/Kaptive).
+ 
 * Download Web2Py framework from [here](http://www.web2py.com/). Installation guide can be found [here](http://web2py.com/books/default/chapter/29/13/deployment-recipes).
 * The default work directories ````/opt/kaptvie```` structure. These settings may be modified in ````settings.ini```` file.
 
