@@ -569,13 +569,35 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
     # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
     gd_diagram.write(svg_path, "SVG")
 
-    with open(svg_path,'r') as svg_file:
+    with open(svg_path, 'r') as svg_file:
         svg = le.parse(svg_file)
+        count_a = 0
+        count_b = 0
         for elem in svg.xpath('//*[attribute::style]'):
-            if elem.attrib['style']=="stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
-                parent=elem.getparent()
-                parent.remove(elem)
-    with open(svg_temp_path,'w') as f:
+            if elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                count_a += 1
+            elif elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                count_b += 1
+        if count_a == 2:
+            for elem in svg.xpath('//*[attribute::style]'):
+                if elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                    parent=elem.getparent()
+                    parent.remove(elem)
+                elif elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                    for elem_g in svg.xpath('//*[attribute::transform]'):
+                        if elem_g.attrib['transform'] == "":
+                            elem_g.insert(0, elem)
+        elif count_b == 2:
+            for elem in svg.xpath('//*[attribute::style]'):
+                if elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                    parent=elem.getparent()
+                    parent.remove(elem)
+                elif elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                    for elem_g in svg.xpath('//*[attribute::transform]'):
+                        if elem_g.attrib['transform'] == "":
+                            elem_g.insert(0, elem)
+
+    with open(svg_temp_path, 'w') as f:
         f.write(le.tostring(svg))
 
     convert_cmd = 'convert ' + svg_temp_path + ' ' + png_path
