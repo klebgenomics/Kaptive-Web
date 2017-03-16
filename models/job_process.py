@@ -459,6 +459,9 @@ def process_result(job_file_path, job_queue_path, upload_path, job_result_path, 
 
 def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_no):
     from reportlab.lib.colors import black
+    import lxml.etree as le
+
+
     if (('session.uuid' not in locals()) and ('session.uuid' not in globals()) and
             ('session.uuid' not in vars())) or session.uuid is None:
         uuid = 'No Session ID'
@@ -476,6 +479,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
     gbk_file = reference_database_path + reference_db
     gbk_path = os.path.join(upload_path, job_uuid, str(seq_no), locus + '.gbk')
     svg_path = os.path.join(locus_image_folder_path, assemble_name + '.svg')
+    svg_temp_path = os.path.join(locus_image_folder_path, assemble_name + '_temp.svg')
     png_path = os.path.join(locus_image_folder_path, assemble_name + '.png')
 
     for record in SeqIO.parse(gbk_file, 'genbank'):
@@ -562,7 +566,20 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                     x=0, yt=0.15, yb=0,
                     fragments=1,
                     start=0, end=max_len)
-    gd_diagram.write(png_path, "PNG")
+    # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
     gd_diagram.write(svg_path, "SVG")
+
+    with open(svg_path,'r') as svg_file:
+        svg = le.parse(svg_file)
+        for elem in svg.xpath('//*[attribute::style]'):
+            if elem.attrib['style']=="stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                parent=elem.getparent()
+                parent.remove(elem)
+    with open(svg_temp_path,'w') as f:
+        f.write(le.tostring(svg))
+
+    convert_cmd = 'convert ' + svg_temp_path + ' ' + png_path
+    subprocess.call(convert_cmd, shell=True)
+
     trim_cmd = 'convert ' + png_path + ' -trim ' + png_path
     subprocess.call(trim_cmd, shell=True)
