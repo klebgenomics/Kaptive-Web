@@ -458,6 +458,7 @@ def process_result(job_file_path, job_queue_path, upload_path, job_result_path, 
 
 
 def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_no):
+    from reportlab.lib.colors import black
     if (('session.uuid' not in locals()) and ('session.uuid' not in globals()) and
             ('session.uuid' not in vars())) or session.uuid is None:
         uuid = 'No Session ID'
@@ -546,6 +547,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                 continue
             gd_feature_set.add_feature(feature,
                                        sigil="BIGARROW",
+                                       border=black,
                                        color=gene_colors[i],
                                        arrowhead_length=1,
                                        label=True,
