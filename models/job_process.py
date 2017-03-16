@@ -547,6 +547,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
             gd_feature_set.add_feature(feature,
                                        sigil="BIGARROW",
                                        color=gene_colors[i],
+                                       arrowhead_length=1,
                                        label=True,
                                        name=gene_name[i] + gene_cov[i] + gene_id[i],
                                        label_position="start",
