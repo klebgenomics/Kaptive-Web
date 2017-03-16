@@ -535,7 +535,8 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                                                      name=record.name,
                                                      greytrack=False,
                                                      start=0,
-                                                     end=len(record))
+                                                     end=len(record),
+                                                     scale_ticks=0)
         gd_feature_set = gd_track_for_features.new_set()
 
         i = 0
