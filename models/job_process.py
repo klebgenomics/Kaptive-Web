@@ -553,17 +553,17 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                                        sigil="BIGARROW",
                                        border=black,
                                        color=gene_colors[i],
-                                       arrowhead_length=1,
+                                       arrowhead_length=100,
                                        label=True,
                                        name=gene_name[i] + gene_cov[i] + gene_id[i],
                                        label_position="start",
                                        label_size=14,
-                                       label_angle=25)
+                                       label_angle=20)
             i += 1
 
     gd_diagram.draw(format="linear",
-                    pagesize=(1800, 350),
-                    x=0, yt=0.15, yb=0,
+                    pagesize=(1800, 200),
+                    x=0, yt=0, yb=0,
                     fragments=1,
                     start=0, end=max_len)
     # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
@@ -590,12 +590,20 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
         elif count_b == 2:
             for elem in svg.xpath('//*[attribute::style]'):
                 if elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
-                    parent=elem.getparent()
+                    parent = elem.getparent()
                     parent.remove(elem)
                 elif elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
                     for elem_g in svg.xpath('//*[attribute::transform]'):
                         if elem_g.attrib['transform'] == "":
                             elem_g.insert(0, elem)
+        rect = svg.xpath('//svg:rect', namespaces={'svg': 'http://www.w3.org/2000/svg'})
+        rect[0].set('y', '-100')
+        for elem in svg.xpath('//*[attribute::height]'):
+            if elem.attrib['height'] == "200":
+                elem.attrib['height'] = "800"
+        for elem in svg.xpath('//*[attribute::transform]'):
+            if elem.attrib['transform'] == "scale(1,-1) translate(0,-200)":
+                elem.attrib['transform'] = "scale(1,-1) translate(0,-400)"
 
     with open(svg_temp_path, 'w') as f:
         f.write(le.tostring(svg))
