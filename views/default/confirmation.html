@@ -95,7 +95,7 @@
 
 <p style="padding-top:30px;">&nbsp;</p>
 
-<font color="red"><strong>{{=content}}</strong></font>
+<font color="#6c2b6a"><strong>{{=content}}</strong></font>
 
 {{if result_status != 1:}}
 <script type="text/javascript">
@@ -361,7 +361,7 @@
     </tbody>
 </table>
 {{else:}}
-    <font color="red"><strong>Processing your job, it usually takes 10 minutes for each assembly file to complete. This page will refresh every {{=str(refresh_time / 1000)}} seconds until the process is completed. Please do not close this page or start a new job.</strong></font>
+    <font color="#6c2b6a"><strong>Processing your job, it usually takes 10 minutes for each assembly file to complete. This page will refresh every {{=str(refresh_time / 1000)}} seconds until the process is completed. Please do not close this page or start a new job.</strong></font>
     {{print(' (Confirmation) Result data not available.')}}
     <script type="text/javascript">
         window.setTimeout(function(){ document.location.reload(true); }, {{=int(refresh_time / 10)}});
@@ -387,7 +387,7 @@
         {{for i in error_dict:}}
         <tr>
             <td><strong>{{=i['Job name']}}</strong></td>
-            <td><strong><font color="red">{{=i['Error']}}</font></strong></td>
+            <td><strong><font color="#6c2b6a">{{=i['Error']}}</font></strong></td>
         </tr>
         {{pass}}
     </tbody>
