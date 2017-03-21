@@ -553,12 +553,13 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                                        sigil="BIGARROW",
                                        border=black,
                                        color=gene_colors[i],
-                                       arrowhead_length=100,
+                                       arrowshaft_height=1.0,
                                        label=True,
                                        name=gene_name[i] + gene_cov[i] + gene_id[i],
-                                       label_position="start",
+                                       label_position="middle",
                                        label_size=14,
-                                       label_angle=20)
+                                       label_angle=20,
+                                       label_strand=1)
             i += 1
 
     gd_diagram.draw(format="linear",
