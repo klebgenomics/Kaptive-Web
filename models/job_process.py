@@ -564,7 +564,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
 
     gd_diagram.draw(format="linear",
                     pagesize=(1800, 200),
-                    x=0, yt=0, yb=0,
+                    x=0, yt=0, yb=0, y=0,
                     fragments=1,
                     start=0, end=max_len)
     # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
@@ -602,6 +602,12 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
         for elem in svg.xpath('//*[attribute::height]'):
             if elem.attrib['height'] == "200":
                 elem.attrib['height'] = "800"
+        for elem in svg.xpath('//*[attribute::width]'):
+            if elem.attrib['width'] == "1800":
+                elem.attrib['width'] = "2500"
+        for elem in svg.xpath('//*[attribute::viewBox]'):
+            if elem.attrib['viewBox'] == "0 0 1800 200":
+                elem.attrib['viewBox'] = "0 0 2500 200"
         for elem in svg.xpath('//*[attribute::transform]'):
             if elem.attrib['transform'] == "scale(1,-1) translate(0,-200)":
                 elem.attrib['transform'] = "scale(1,-1) translate(0,-400)"
