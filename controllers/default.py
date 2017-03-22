@@ -78,9 +78,9 @@ def jobs():
         Field('assembly',
               'upload',
               requires=[IS_NOT_EMPTY(),
-                        IS_UPLOAD_FILENAME(extension='^(fasta|FASTA|zip|ZIP|tar\.gz|TAR\.GZ|fasta.\gz|FASTA.GZ)$',
+                        IS_UPLOAD_FILENAME(extension='^(fasta|FASTA|zip|ZIP|gz|GZ|)$',
                                            lastdot=True)],
-              label=T('Assembly File (FASTA, ZIP, FASTA.GZ and TAR.GZ only)*'), custom_store=upload_file),
+              label=T('Assembly File (FASTA, ZIP, GZ only)*'), custom_store=upload_file),
         Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference Database')),
         captcha_field()  # Google reCaptcha v2
     )
@@ -137,10 +137,6 @@ def jobs():
     elif form.errors:
         response.flash = 'Error(s) found in the form. Please double check and submit again.'
         logger.error('[' + session.uuid + '] ' + 'Error(s) found in the form.')
-    btn = form.element("input", _type="submit")
-    btn["_onclick"] = "return confirm('Please confirm the information provided is correct. " \
-                      "It may take up to 5 minutes to upload the file. " \
-                      "Please do not close this page or start a new job.');"
     return dict(form=form)
 
 
