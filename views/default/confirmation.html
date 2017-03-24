@@ -1,6 +1,9 @@
 {{extend 'layout.html'}}
 <head>
     <link href="{{=URL('static','css/font-awesome.min.css')}}" rel="stylesheet" />
+    <link href="{{=URL('static','css/tooltip.css')}}" rel="stylesheet" type="text/css" media="all" />
+    <script src="{{=URL('static','js/jquery.js')}}" type="text/javascript"></script>
+    <script src="{{=URL('static','js/jtip.js')}}" type="text/javascript"></script>
     <!--[if IE 6]><link href="default_ie6.css" rel="stylesheet" type="text/css" /><![endif]-->
 </head>
 {{if session.status == 1:}}
@@ -141,9 +144,9 @@
                 pass}}
             <td bgcolor={{=title_bg}}><strong>{{=result_data[i]["Assembly name"]}}</strong></td>
             <td bgcolor={{=title_bg}}><strong>Best K-locus: </strong>{{=result_data[i]["Best match"]["Locus name"]}}</td>
-            <td bgcolor={{=title_bg}}><strong>Match confidence <i class="fa fa-info-circle" title="Match Confidence"></i> : </strong>{{=result_data[i]["Best match"]["Match confidence"]}}</td>
-            <td bgcolor={{=title_bg}}><strong>Cov <i class="fa fa-info-circle" title="Coverage"></i> : </strong>{{=result_data[i]["blastn result"]["Coverage"]}}</td>
-            <td bgcolor={{=title_bg}}><strong>ID <i class="fa fa-info-circle" title="Identification"></i> : </strong>{{=result_data[i]["blastn result"]["Identity"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>Match confidence <a href="{{=URL('static','tooltips/tp1.html')}}?width=450" class="jTip" id="tp1" name="Match Confidence" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["Best match"]["Match confidence"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>Cov <a href="{{=URL('static','tooltips/tp2.html')}}?width=450" class="jTip" id="tp2" name="Cov" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Coverage"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>ID <a href="{{=URL('static','tooltips/tp3.html')}}?width=450" class="jTip" id="tp3" name="ID" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Identity"]}}</td>
             {{
                 gene_total = len(result_data[i]["K locus genes"])
                 gene_found = 0
@@ -173,7 +176,7 @@
             <td colspan="6">
                 <table class="tbb table"style="width:100%;">
                     <tr>
-                        <td colspan="6"><strong>{{=result_data[i]["Best match"]["Locus name"]}} reference <i class="fa fa-info-circle" title="Reference"></i> :</strong></td>
+                        <td colspan="6"><strong>{{=result_data[i]["Best match"]["Locus name"]}} reference <a href="{{=URL('static','tooltips/tp4.html')}}?width=450" class="jTip" id="tp4" name="Reference K-locus" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> :</strong></td>
                     </tr>
                     <tr>
                         {{assemble_name = result_data[i]["Assembly name"]}}
@@ -190,7 +193,7 @@
                                         <tbody>
                                             <tr>
                                                 {{other_gene_in_dict = result_data[i]["Other genes in locus"]}}
-                                                <td style="white-space:nowrap"><strong>Other genes found in locus <i class="fa fa-info-circle" title="Other genes found in locus"></i> : </strong></td>
+                                                <td style="white-space:nowrap"><strong>Other genes found in locus <a href="{{=URL('static','tooltips/tp5.html')}}?width=450" class="jTip" id="tp5" name="Other genes found in locus" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong></td>
                                                 <td style="vertical-align:bottom">{{=len(other_gene_in_dict)}}</td>
                                             </tr>
                                             <tr>
@@ -221,7 +224,7 @@
                                         <tbody>
                                             <tr>
                                                 {{other_gene_outside_dict = result_data[i]["Other genes outside locus"]}}
-                                                <td style="white-space:nowrap"><strong>Other genes outside locus <i class="fa fa-info-circle" title="Other genes outside locus"></i> : </strong></td>
+                                                <td style="white-space:nowrap"><strong>Other genes found outside locus <a href="{{=URL('static','tooltips/tp6.html')}}?width=450" class="jTip" id="tp6" name="Other genes found outside locus" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong></td>
                                                 <td style="vertical-align:bottom">{{=len(other_gene_outside_dict)}}</td>
                                             </tr>
                                             <tr>
@@ -282,7 +285,7 @@
                         <td colspan="6" style="padding-left:12px;">
                             <table>
                                 <tr>
-                                    <td><strong>Allelic type <i class="fa fa-info-circle" title="Allelic Type"></i> :</strong></td>
+                                    <td><strong>Allelic type <a href="{{=URL('static','tooltips/tp7.html')}}?width=450" class="jTip" id="tp7" name="Allelic type" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> :</strong></td>
                                     <td width=90px></td>
                                     {{
                                         allelic_typing_dict = result_data[i]["Allelic_typing"]
@@ -309,13 +312,13 @@
                                     <td width=500px style="white-space:nowrap">
                                         <table>
                                             <tr>
-                                                <td><strong>Assembly pieces <i class="fa fa-info-circle" title="Assembly pieces"></i> :</strong></td>
+                                                <td><strong>Assembly pieces <a href="{{=URL('static','tooltips/tp8.html')}}?width=450" class="jTip" id="tp8" name="Assembly pieces" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> :</strong></td>
                                                 <td width=50px></td>
                                                 <td><a href="{{=URL('download',args=(meta_token, str(i), 'kaptive_results_' + assemble_name + '.fasta'))}}" download="{{=('kaptive_results_' + assemble_name + '.fasta')}}">Download as FASTA</a></td>
                                             </tr>
                                         </table>
                                     </td>
-                                    <td><strong>{{=result_data[i]["Best match"]["Locus name"]}} reference size <i class="fa fa-info-circle" title="Reference size"></i> :</strong></td>
+                                    <td><strong>{{=result_data[i]["Best match"]["Locus name"]}} reference size <a href="{{=URL('static','tooltips/tp9.html')}}?width=450" class="jTip" id="tp9" name="{{=result_data[i]["Best match"]["Locus name"]}} reference size" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> :</strong></td>
                                     <td>{{=result_data[i]["Best match"]["Reference"]["Length"]}}</td>
                                 </tr>
                                 <tr>
@@ -348,7 +351,7 @@
                             </table>
                             {{else:}}N/A{{pass}}
                         </td>
-                                    <td  style="vertical-align:top"><strong>Length discrepancy <i class="fa fa-info-circle" title="Length discrepancy"></i> :</strong></td>
+                                    <td  style="vertical-align:top"><strong>Length discrepancy <a href="{{=URL('static','tooltips/tp10.html')}}?width=450" class="jTip" id="tp10" name="Length discrepancy" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> :</strong></td>
                                     <td  style="vertical-align:top">{{=result_data[i]["blastn result"]["Length discrepancy"]}}</td>
                                 </tr>
                             </table>
