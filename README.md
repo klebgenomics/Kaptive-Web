@@ -75,6 +75,10 @@ WARNING: If you use the variant <i>Klebsiella</i> K-locus database please inspec
 
 <p align="left"><img src="extras/Example_close_match.png" alt="Example close match" width="1000"></p>
 
+The genome ATCC_BAA1705 is a close match to KL107 with 100% BLASTn identity at 100% coverage. The locus was found in a single assembly piece and was exactly the same length as the reference. 
+All of the expected KL107 genes were found in the locus region of the assembly with high tBLASTx coverage and identity (indicated by dark purple shading). 
+No unexpected genes were found in the locus region of the assembly and only a small number were found outside of the locus region of the assembly, which is as expected since some K-locus genes share similarity with genes in other regions of the genome. 
+
 #### More distant match
 
 #### Broken assembly
