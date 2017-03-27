@@ -27,8 +27,7 @@ If <b>Kaptive</b> has lower confidence in the match it may mean that your assemb
 If you do have a novel K-locus or novel variant and you would like it to be added to the database, [please let us know](https://github.com/kelwyres/Kaptive-Web/issues).
 
 Read more about <b>Kaptive</b> and how it was used to classify K-loci in <i>Klebsiella</i> here:
-[Wyres, K. et al. Identification of Klebsiella capsule synthesis loci from whole genome data. Microbial Genomics (2016).](http://mgen.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000102)
-
+[Wyres, K. et al. Identification of Klebsiella capsule synthesis loci from whole genome data. (2016) MGen 2, doi: 10.1099/mgen.0.000102](http://mgen.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000102)
 Download the command-line version of <b>Kaptive</b> [here](https://github.com/katholt/kaptive) (enables advanced options). 
 
 ## Table of Contents
@@ -73,6 +72,8 @@ WARNING: If you use the variant <i>Klebsiella</i> K-locus database please inspec
 ## Example results and interpretation
 
 #### Very close match
+
+<p align="left"><img src="extras/Example_close_match.png" alt="Example close match" width="1000"></p>
 
 #### More distant match
 
@@ -121,7 +122,7 @@ A small number of the original K-locus references are truncated, containing only
 ## Citation
 
 If you use <b>Kaptive Web</b> in your research, please cite this paper:
-[Wyres, K. et al. Identification of Klebsiella capsule synthesis loci from whole genome data. bioRxiv (2016).](http://biorxiv.org/content/early/2016/08/24/071415)
+[Wyres, K. et al. Identification of Klebsiella capsule synthesis loci from whole genome data. (2016) MGen 2, doi: 10.1099/mgen.0.000102](http://mgen.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000102)
 
 ## Installation
 If you would like to install and run your own version of <b>Kaptive Web</b>, follow the instructions [here](./INSTALL.md).
