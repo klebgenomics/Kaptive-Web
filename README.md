@@ -75,17 +75,42 @@ WARNING: If you use the variant <i>Klebsiella</i> K-locus database please inspec
 
 <p align="left"><img src="extras/Example_close_match.png" alt="Example close match" width="1000"></p>
 
-The genome ATCC_BAA1705 is a close match to KL107 with 100% BLASTn identity at 100% coverage. The locus was found in a single assembly piece and was exactly the same length as the reference. 
-All of the expected KL107 genes were found in the locus region of the assembly with high tBLASTx coverage and identity (indicated by dark purple shading). 
-No unexpected genes were found in the locus region of the assembly and only a small number were found outside of the locus region of the assembly, which is as expected since some K-locus genes share similarity with genes in other regions of the genome. 
+The genome ATCC_BAA1705 is a close match to KL107 with 100% BLASTn identity at 100% coverage. The K-locus was found in a single assembly piece and was exactly the same length as the reference. 
+All of the expected KL107 genes were found in the K-locus region of the assembly with high tBLASTx coverage and identity (indicated by dark purple shading). 
+No unexpected genes were found in the K-locus region of the assembly and only a small number were found outside of the K-locus region of the assembly, which is as expected since some K-locus genes share similarity with genes in other regions of the genome. 
 
 #### More distant match
 
+<p align="left"><img src="extras/Example_more_distant_match.png" alt="Example distant match" width="1000"></p>
+
+The genome UCICRE7 is a more distant match to KL2. It has 100% BLASTn coverage but only 98.72% identity. The K-locus region of the assembly is in a single piece but it is 3bp shorter than the reference.
+Most of the expected KL2 genes were found within the K-locus region of the assembly at high tBLASTx coverage and identity (dark purple shading) but KL2_13 was missing (grey shading). 
+Together the results suggest there may be a small deletion causing a frame-shift mutation within KL2_13. 
+
 #### Broken assembly
+
+<p align="left"><img src="extras/Example_broken_assembly.png" alt="Example broken assembly" width="1000"></p>
+
+The genome MGH51 seems to be a reasonable match to the KL106 reference (99.11% coverage and 99.95% identity by BLASTn). However, the K-locus region of its assembly is in at least 6 pieces! 
+When an assembly is broken into multiple pieces we should also treat <b>Kaptive's</b> results cautiously because we can't be sure about the true order of the pieces and we may have missed some pieces that contain novel genes (<b>Kaptive</b> can't find these because it only searches for known K-locus genes).  
 
 #### Poor match - possible novel locus
 
+<p align="left"><img src="extras/Example_novel_locus.png" alt="Example novel locus" width="1000"></p>
+
+The genome ERR276923 best matches the KL30 reference (100% BLASTn coverage and 96.37% identity) but is missing one of the expected KL30 genes (<i>wcuG</i>, indicated by grey shading) and has an unexpected gene within the K-locus region of the assembly (KL104_18).
+Five expected KL30 genes also have low coverage and/or identity tBLASTx matches (light purple shading). These genes are all in the capsule-specific region of the locus (the centre) and are adjacent to the missing gene. The combination of these results (clustered low quality gene matches, a missing gene and an unexpected gene) suggest that this genome may have a novel K-locus.
+However, the K-locus region of the ERR276923 assembly is in multiple pieces so care should be taken when interpreting these results. In such a case we recommend further investigation e.g. exploring the K-locus region of the assembly graph to check for other assembly contigs that may be part of the K-locus - if these contigs contain completely novel genes <b>Kaptive</b> cannot find them!
+
 #### Poor match - possible novel variant
+
+<p align="left"><img src="extras/Example_novel_variant.png" alt="Example variant" width="1000"></p>
+
+The genome 1753_ST258 is a partial match to KL107 with 99.98% BLASTn identity but only 85.56% coverage. The K-locus region of the assembly is in one piece from the left-most <i>galF</i> gene to the right-most <i>ugd</i> gene, homologues of both of which are found in almost all K-loci.
+However, the K-locus region of the assembly is 2977bp shorter than the reference, and four genes are missing from the centre of the locus (<i>wbaP</i>, KL107_08, KL107_09 and KL107_10 shown in grey).
+In fact, 1753_ST258 is a deletion variant of KL107. Running <b>Kaptive</b> with the <i>Klebsiella</i> K locus variants database shows that it is a very good match to KL107-D1 (shown below).
+
+<p align="left"><img src="extras/Example_variant_database_run.png" alt="Example variant database run" width="1000"></p>  
 
 ## Databases available in Kaptive Web
 
