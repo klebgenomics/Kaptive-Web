@@ -315,6 +315,7 @@
                                                 <td><strong>Assembly pieces <a href="{{=URL('static','tooltips/tp8.html')}}?width=450" class="jTip" id="tp8_{{=i}}" name="Assembly pieces" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> :</strong></td>
                                                 <td width=50px></td>
                                                 {{
+                                                    job_seq = 0
                                                     for job in job_data["Job list"]:
                                                         if job["Fasta file"] == assemble_name + '.fasta':
                                                             job_seq = job["Job seq"]
