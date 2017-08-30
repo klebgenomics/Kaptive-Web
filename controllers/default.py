@@ -66,7 +66,7 @@ def jobs():
             fname = re.sub('_', ' ', fname)
             fname = re.sub('\d-', '', fname)
             logger.debug('[' + session.uuid + '] ' + 'Database Name: ' + f)
-            filelist.update({f: fname.title()})
+            filelist.update({f: fname.replace(' k ', ' K ').replace(' o ', ' O ')})
     filelist_sorted = sorted(filelist.iteritems(), key=lambda d: d[0])
     if len(filelist) == 0:
         logger.error('[' + session.uuid + '] ' + 'No reference database file found.')
@@ -74,14 +74,14 @@ def jobs():
 
     # Create the form
     form = SQLFORM.factory(
-        Field('job_name', label=T('Job Name (Optional)')),
+        Field('job_name', label=T('Job name (optional)')),
         Field('assembly',
               'upload',
               requires=[IS_NOT_EMPTY(),
                         IS_UPLOAD_FILENAME(extension='^(fasta|FASTA|zip|ZIP|tar\.gz|TAR\.GZ|fasta.\gz|FASTA.GZ)$',
                                            lastdot=True)],
-              label=T('Assembly File (FASTA, ZIP, FASTA.GZ and TAR.GZ only)*'), custom_store=upload_file),
-        Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference Database')),
+              label=T('Assembly file (fasta, zip, fasta.gz or tar.gz)*'), custom_store=upload_file),
+        Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference database')),
         captcha_field()  # Google reCaptcha v2
     )
 
@@ -138,8 +138,7 @@ def jobs():
         response.flash = 'Error(s) found in the form. Please double check and submit again.'
         logger.error('[' + session.uuid + '] ' + 'Error(s) found in the form.')
     btn = form.element("input", _type="submit")
-    btn["_onclick"] = "return confirm('Please confirm the information provided is correct. " \
-                      "It may take up to 5 minutes to upload the file. " \
+    btn["_onclick"] = "return confirm('It may take up to five minutes to upload the file. " \
                       "Please do not close this page or start a new job.');"
     return dict(form=form)
 
