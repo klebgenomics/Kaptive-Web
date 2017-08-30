@@ -10,7 +10,7 @@
 {{pass}}
 
 <h2>
-    Job Overview:
+    Job overview
 </h2>
 
 <style type="text/css">
@@ -50,7 +50,7 @@
     <tbody>
         <tr>
             <td><strong>Token</strong></td>
-            <td>{{=meta_token}} <br> {{if session.status == 1:}}<strong><font color="red">Please take a note of this token, you may use it to retrieve the result in the next 7 days.</font></strong>{{pass}}</td>
+            <td>{{=meta_token}} <br> {{if session.status == 1:}}<strong><font color="red">You may use this token to retrieve your result for the next seven days.</font></strong>{{pass}}</td>
         </tr>
         {{if meta_job_name != "":}}
         <tr>
@@ -105,7 +105,7 @@
 
 {{if succeeded_jobs > 0:}}
 <h2>
-    Job Result:
+    Result
 </h2>
 
 {{if ('result_data' in locals()) and ('result_data' in globals()) and result_data is not None:}}
@@ -117,7 +117,7 @@
             <th></th>
             <th></th>
             <th><strong><a href="{{=URL('download',args=(meta_token, 'result', 'kaptive_results_table.txt'))}}" download="{{='kaptive_results_table.txt'}}">Download raw results table (TXT)</a></strong></th>
-            <th><strong><a href="{{=URL('download',args=(meta_token, 'result', 'kaptive_results.json'))}}" download="{{='kaptive_results.json'}}">Download raw results table (JSON)</a></strong></th>
+            <th><strong><a href="{{=URL('download',args=(meta_token, 'result', 'kaptive_results.json'))}}" download="{{='kaptive_results.json'}}">Download raw results (JSON)</a></strong></th>
         </tr>
     </thead>
     <tbody>
@@ -323,9 +323,9 @@
                             {{if len(result_data[i]["blastn result"]["Locus assembly pieces"]) > 0:}}
                             <table>
                                 <tr>
-                                    <td style="border-style:none" bgcolor="#E5E8E8">Contig Name</td>
-                                    <td style="border-style:none" bgcolor="#E5E8E8">Start Position</td>
-                                    <td style="border-style:none" bgcolor="#E5E8E8">End Position</td>
+                                    <td style="border-style:none" bgcolor="#E5E8E8">Contig name</td>
+                                    <td style="border-style:none" bgcolor="#E5E8E8">Start position</td>
+                                    <td style="border-style:none" bgcolor="#E5E8E8">End position</td>
                                     <td style="border-style:none" bgcolor="#E5E8E8">Length</td>
                                 </tr>
                                 {{
@@ -361,7 +361,7 @@
     </tbody>
 </table>
 {{else:}}
-    <font color="red"><strong>Processing your job, it usually takes 10 minutes for each assembly file to complete. This page will refresh every {{=str(refresh_time / 1000)}} seconds until the process is completed. Please do not close this page or start a new job.</strong></font>
+    <font color="red"><strong>It may take a few minutes for each assembly file to complete. This page will refresh every {{=str(refresh_time / 1000)}} seconds until the process is completed. Please do not close this page or start a new job.</strong></font>
     {{print(' (Confirmation) Result data not available.')}}
     <script type="text/javascript">
         window.setTimeout(function(){ document.location.reload(true); }, {{=int(refresh_time / 10)}});
@@ -373,7 +373,7 @@
 {{pass}}
 {{if failed_jobs > 0:}}
 <h2>
-    Errors:
+    Errors
 </h2>
 
 <table class="table">
