@@ -78,7 +78,7 @@ def jobs():
         Field('assembly',
               'upload',
               requires=[IS_NOT_EMPTY(),
-                        IS_UPLOAD_FILENAME(extension='^(fasta|FASTA|zip|ZIP|tar\.gz|TAR\.GZ|fasta.\gz|FASTA.GZ)$',
+                        IS_UPLOAD_FILENAME(extension='^(fasta|FASTA|zip|ZIP|gz|GZ|)$',
                                            lastdot=True)],
               label=T('Assembly file (fasta, zip, fasta.gz or tar.gz)*'), custom_store=upload_file),
         Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference database')),
@@ -137,9 +137,6 @@ def jobs():
     elif form.errors:
         response.flash = 'Error(s) found in the form. Please double check and submit again.'
         logger.error('[' + session.uuid + '] ' + 'Error(s) found in the form.')
-    btn = form.element("input", _type="submit")
-    btn["_onclick"] = "return confirm('It may take up to five minutes to upload the file. " \
-                      "Please do not close this page or start a new job.');"
     return dict(form=form)
 
 

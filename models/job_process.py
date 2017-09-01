@@ -458,6 +458,10 @@ def process_result(job_file_path, job_queue_path, upload_path, job_result_path, 
 
 
 def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_no):
+    from reportlab.lib.colors import black
+    import lxml.etree as le
+
+
     if (('session.uuid' not in locals()) and ('session.uuid' not in globals()) and
             ('session.uuid' not in vars())) or session.uuid is None:
         uuid = 'No Session ID'
@@ -475,6 +479,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
     gbk_file = reference_database_path + reference_db
     gbk_path = os.path.join(upload_path, job_uuid, str(seq_no), locus + '.gbk')
     svg_path = os.path.join(locus_image_folder_path, assemble_name + '.svg')
+    svg_temp_path = os.path.join(locus_image_folder_path, assemble_name + '_temp.svg')
     png_path = os.path.join(locus_image_folder_path, assemble_name + '.png')
 
     for record in SeqIO.parse(gbk_file, 'genbank'):
@@ -535,7 +540,8 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                                                      name=record.name,
                                                      greytrack=False,
                                                      start=0,
-                                                     end=len(record))
+                                                     end=len(record),
+                                                     scale_ticks=0)
         gd_feature_set = gd_track_for_features.new_set()
 
         i = 0
@@ -545,20 +551,72 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                 continue
             gd_feature_set.add_feature(feature,
                                        sigil="BIGARROW",
+                                       border=black,
                                        color=gene_colors[i],
+                                       arrowshaft_height=1.0,
                                        label=True,
                                        name=gene_name[i] + gene_cov[i] + gene_id[i],
-                                       label_position="start",
+                                       label_position="middle",
                                        label_size=14,
-                                       label_angle=25)
+                                       label_angle=20,
+                                       label_strand=1)
             i += 1
 
     gd_diagram.draw(format="linear",
-                    pagesize=(1800, 350),
-                    x=0, yt=0.15, yb=0,
+                    pagesize=(1800, 100),
+                    x=0, yt=0, yb=0, y=0,
                     fragments=1,
                     start=0, end=max_len)
-    gd_diagram.write(png_path, "PNG")
+    # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
     gd_diagram.write(svg_path, "SVG")
+
+    with open(svg_path, 'r') as svg_file:
+        svg = le.parse(svg_file)
+        count_a = 0
+        count_b = 0
+        for elem in svg.xpath('//*[attribute::style]'):
+            if elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                count_a += 1
+            elif elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                count_b += 1
+        if count_a == 2:
+            for elem in svg.xpath('//*[attribute::style]'):
+                if elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                    parent=elem.getparent()
+                    parent.remove(elem)
+                elif elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                    for elem_g in svg.xpath('//*[attribute::transform]'):
+                        if elem_g.attrib['transform'] == "":
+                            elem_g.insert(0, elem)
+        elif count_b == 2:
+            for elem in svg.xpath('//*[attribute::style]'):
+                if elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                    parent = elem.getparent()
+                    parent.remove(elem)
+                elif elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                    for elem_g in svg.xpath('//*[attribute::transform]'):
+                        if elem_g.attrib['transform'] == "":
+                            elem_g.insert(0, elem)
+        rect = svg.xpath('//svg:rect', namespaces={'svg': 'http://www.w3.org/2000/svg'})
+        rect[0].set('y', '-100')
+        for elem in svg.xpath('//*[attribute::height]'):
+            if elem.attrib['height'] == "100":
+                elem.attrib['height'] = "800"
+        for elem in svg.xpath('//*[attribute::width]'):
+            if elem.attrib['width'] == "1800":
+                elem.attrib['width'] = "2500"
+        for elem in svg.xpath('//*[attribute::viewBox]'):
+            if elem.attrib['viewBox'] == "0 0 1800 100":
+                elem.attrib['viewBox'] = "0 0 2500 100"
+        for elem in svg.xpath('//*[attribute::transform]'):
+            if elem.attrib['transform'] == "scale(1,-1) translate(0,-100)":
+                elem.attrib['transform'] = "scale(1,-1) translate(0,-300)"
+
+    with open(svg_temp_path, 'w') as f:
+        f.write(le.tostring(svg))
+
+    convert_cmd = 'convert ' + svg_temp_path + ' ' + png_path
+    subprocess.call(convert_cmd, shell=True)
+
     trim_cmd = 'convert ' + png_path + ' -trim ' + png_path
     subprocess.call(trim_cmd, shell=True)

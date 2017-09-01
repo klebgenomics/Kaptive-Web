@@ -1,0 +1,57 @@
+# Pycharm
+.idea
+
+# Mac OS
+*.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# web2py
+cache
+databases
+errors
+sessions
+uploads
+downloads
+*.py[co]
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+*.bak
+pip-log.txt
+progress.log
+.coverage
+.tox
+*.mo
+.mr.developer.cfg
+
+#Kaptive
+uploads
+result
+*.fasta
+k_locus_results_*
+*.gbk
+kaptive.py
