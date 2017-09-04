@@ -275,7 +275,11 @@ def get_png():
     uuid = request.args(0)
     assemble_name = request.args(1)
     path = os.path.join(upload_path, uuid, 'locus_image', assemble_name + '.png')
-    return response.stream(path)
+    if os.path.exists(path):
+        return response.stream(path)
+    else:
+        path = os.path.join(upload_path, 'image_not_found.svg')
+        return response.stream(path)
 
 
 def call():

@@ -495,128 +495,131 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                             SeqIO.write(record, gbk_path, 'genbank')
                             logger.debug('[' + job_uuid + '] ' + "Locus genbank file created.")
 
-    A_rec = SeqIO.read(gbk_path, "genbank")
+    if os.path.exists(gbk_path):
+        A_rec = SeqIO.read(gbk_path, "genbank")
 
-    locus_genes = job_result_data[0]["K locus genes"]
+        locus_genes = job_result_data[0]["K locus genes"]
 
-    A_colors = []
-    A_cov = []
-    A_id = []
-    A_name = []
+        A_colors = []
+        A_cov = []
+        A_id = []
+        A_name = []
 
-    for genes in locus_genes:
-        if genes["Result"] == "Found in locus":
-            if genes["Match confidence"] == "Very high":
-                A_colors += ["#7F407F"]
-            elif genes["Match confidence"] == "High":
-                A_colors += ["#995C99"]
-            elif genes["Match confidence"] == "Good":
-                A_colors += ["#B27DB2"]
-            elif genes["Match confidence"] == "Low":
-                A_colors += ["#CCA3CC"]
-            elif genes["Match confidence"] == "None":
-                A_colors += ["#D9C3D9"]
-            A_cov += [(" Cov: " + genes["tblastn result"]["Coverage"])]
-            A_id += [(" ID: " + genes["tblastn result"]["Identity"])]
-            if "Gene" not in genes["Reference"]:
-                A_name += [genes["Name"]]
+        for genes in locus_genes:
+            if genes["Result"] == "Found in locus":
+                if genes["Match confidence"] == "Very high":
+                    A_colors += ["#7F407F"]
+                elif genes["Match confidence"] == "High":
+                    A_colors += ["#995C99"]
+                elif genes["Match confidence"] == "Good":
+                    A_colors += ["#B27DB2"]
+                elif genes["Match confidence"] == "Low":
+                    A_colors += ["#CCA3CC"]
+                elif genes["Match confidence"] == "None":
+                    A_colors += ["#D9C3D9"]
+                A_cov += [(" Cov: " + genes["tblastn result"]["Coverage"])]
+                A_id += [(" ID: " + genes["tblastn result"]["Identity"])]
+                if "Gene" not in genes["Reference"]:
+                    A_name += [genes["Name"]]
+                else:
+                    A_name += [genes["Reference"]["Gene"]]
             else:
-                A_name += [genes["Reference"]["Gene"]]
-        else:
-            A_colors += ["#E5E5E5"]
-            A_cov += ['']
-            A_id += ['']
-            if "Gene" not in genes["Reference"]:
-                A_name += [genes["Name"]]
-            else:
-                A_name += [genes["Reference"]["Gene"]]
+                A_colors += ["#E5E5E5"]
+                A_cov += ['']
+                A_id += ['']
+                if "Gene" not in genes["Reference"]:
+                    A_name += [genes["Name"]]
+                else:
+                    A_name += [genes["Reference"]["Gene"]]
 
-    name = locus
-    gd_diagram = GenomeDiagram.Diagram(name)
-    max_len = 0
-    for record, gene_colors, gene_cov, gene_id, gene_name in zip([A_rec], [A_colors], [A_cov], [A_id], [A_name]):
-        max_len = max(max_len, len(record))
-        gd_track_for_features = gd_diagram.new_track(1,
-                                                     name=record.name,
-                                                     greytrack=False,
-                                                     start=0,
-                                                     end=len(record),
-                                                     scale_ticks=0)
-        gd_feature_set = gd_track_for_features.new_set()
+        name = locus
+        gd_diagram = GenomeDiagram.Diagram(name)
+        max_len = 0
+        for record, gene_colors, gene_cov, gene_id, gene_name in zip([A_rec], [A_colors], [A_cov], [A_id], [A_name]):
+            max_len = max(max_len, len(record))
+            gd_track_for_features = gd_diagram.new_track(1,
+                                                         name=record.name,
+                                                         greytrack=False,
+                                                         start=0,
+                                                         end=len(record),
+                                                         scale_ticks=0)
+            gd_feature_set = gd_track_for_features.new_set()
 
-        i = 0
-        for feature in record.features:
-            if feature.type != "CDS":
-                # Exclude this feature
-                continue
-            gd_feature_set.add_feature(feature,
-                                       sigil="BIGARROW",
-                                       border=black,
-                                       color=gene_colors[i],
-                                       arrowshaft_height=1.0,
-                                       label=True,
-                                       name=gene_name[i] + gene_cov[i] + gene_id[i],
-                                       label_position="middle",
-                                       label_size=14,
-                                       label_angle=20,
-                                       label_strand=1)
-            i += 1
+            i = 0
+            for feature in record.features:
+                if feature.type != "CDS":
+                    # Exclude this feature
+                    continue
+                gd_feature_set.add_feature(feature,
+                                           sigil="BIGARROW",
+                                           border=black,
+                                           color=gene_colors[i],
+                                           arrowshaft_height=1.0,
+                                           label=True,
+                                           name=gene_name[i] + gene_cov[i] + gene_id[i],
+                                           label_position="middle",
+                                           label_size=14,
+                                           label_angle=20,
+                                           label_strand=1)
+                i += 1
 
-    gd_diagram.draw(format="linear",
-                    pagesize=(1800, 100),
-                    x=0, yt=0, yb=0, y=0,
-                    fragments=1,
-                    start=0, end=max_len)
-    # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
-    gd_diagram.write(svg_path, "SVG")
+        gd_diagram.draw(format="linear",
+                        pagesize=(1800, 100),
+                        x=0, yt=0, yb=0, y=0,
+                        fragments=1,
+                        start=0, end=max_len)
+        # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
+        gd_diagram.write(svg_path, "SVG")
 
-    with open(svg_path, 'r') as svg_file:
-        svg = le.parse(svg_file)
-        count_a = 0
-        count_b = 0
-        for elem in svg.xpath('//*[attribute::style]'):
-            if elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
-                count_a += 1
-            elif elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
-                count_b += 1
-        if count_a == 2:
+        with open(svg_path, 'r') as svg_file:
+            svg = le.parse(svg_file)
+            count_a = 0
+            count_b = 0
             for elem in svg.xpath('//*[attribute::style]'):
                 if elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
-                    parent=elem.getparent()
-                    parent.remove(elem)
+                    count_a += 1
                 elif elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
-                    for elem_g in svg.xpath('//*[attribute::transform]'):
-                        if elem_g.attrib['transform'] == "":
-                            elem_g.insert(0, elem)
-        elif count_b == 2:
-            for elem in svg.xpath('//*[attribute::style]'):
-                if elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
-                    parent = elem.getparent()
-                    parent.remove(elem)
-                elif elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
-                    for elem_g in svg.xpath('//*[attribute::transform]'):
-                        if elem_g.attrib['transform'] == "":
-                            elem_g.insert(0, elem)
-        rect = svg.xpath('//svg:rect', namespaces={'svg': 'http://www.w3.org/2000/svg'})
-        rect[0].set('y', '-100')
-        for elem in svg.xpath('//*[attribute::height]'):
-            if elem.attrib['height'] == "100":
-                elem.attrib['height'] = "800"
-        for elem in svg.xpath('//*[attribute::width]'):
-            if elem.attrib['width'] == "1800":
-                elem.attrib['width'] = "2500"
-        for elem in svg.xpath('//*[attribute::viewBox]'):
-            if elem.attrib['viewBox'] == "0 0 1800 100":
-                elem.attrib['viewBox'] = "0 0 2500 100"
-        for elem in svg.xpath('//*[attribute::transform]'):
-            if elem.attrib['transform'] == "scale(1,-1) translate(0,-100)":
-                elem.attrib['transform'] = "scale(1,-1) translate(0,-300)"
+                    count_b += 1
+            if count_a == 2:
+                for elem in svg.xpath('//*[attribute::style]'):
+                    if elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                        parent=elem.getparent()
+                        parent.remove(elem)
+                    elif elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                        for elem_g in svg.xpath('//*[attribute::transform]'):
+                            if elem_g.attrib['transform'] == "":
+                                elem_g.insert(0, elem)
+            elif count_b == 2:
+                for elem in svg.xpath('//*[attribute::style]'):
+                    if elem.attrib['style'] == "stroke-width: 1; stroke-linecap: butt; stroke: rgb(0%,0%,0%);":
+                        parent = elem.getparent()
+                        parent.remove(elem)
+                    elif elem.attrib['style'] == "stroke-linecap: butt; stroke-width: 1; stroke: rgb(0%,0%,0%);":
+                        for elem_g in svg.xpath('//*[attribute::transform]'):
+                            if elem_g.attrib['transform'] == "":
+                                elem_g.insert(0, elem)
+            rect = svg.xpath('//svg:rect', namespaces={'svg': 'http://www.w3.org/2000/svg'})
+            rect[0].set('y', '-100')
+            for elem in svg.xpath('//*[attribute::height]'):
+                if elem.attrib['height'] == "100":
+                    elem.attrib['height'] = "800"
+            for elem in svg.xpath('//*[attribute::width]'):
+                if elem.attrib['width'] == "1800":
+                    elem.attrib['width'] = "2500"
+            for elem in svg.xpath('//*[attribute::viewBox]'):
+                if elem.attrib['viewBox'] == "0 0 1800 100":
+                    elem.attrib['viewBox'] = "0 0 2500 100"
+            for elem in svg.xpath('//*[attribute::transform]'):
+                if elem.attrib['transform'] == "scale(1,-1) translate(0,-100)":
+                    elem.attrib['transform'] = "scale(1,-1) translate(0,-300)"
 
-    with open(svg_temp_path, 'w') as f:
-        f.write(le.tostring(svg))
+        with open(svg_temp_path, 'w') as f:
+            f.write(le.tostring(svg))
 
-    convert_cmd = 'convert ' + svg_temp_path + ' ' + png_path
-    subprocess.call(convert_cmd, shell=True)
+        convert_cmd = 'convert ' + svg_temp_path + ' ' + png_path
+        subprocess.call(convert_cmd, shell=True)
 
-    trim_cmd = 'convert ' + png_path + ' -trim ' + png_path
-    subprocess.call(trim_cmd, shell=True)
+        trim_cmd = 'convert ' + png_path + ' -trim ' + png_path
+        subprocess.call(trim_cmd, shell=True)
+    else:
+        logger.debug('[' + job_uuid + '] ' + "Failed to create locus image.")
