@@ -470,6 +470,10 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
 
     job_result_data = read_json_from_file(job_result_path)
     locus = job_result_data[0]["Best match"]["Locus name"]
+    if locus == 'O1v1' or locus == 'O2v1':
+        locus = 'O1/O2v1'
+    if locus == 'O1v2' or locus == 'O2v2':
+        locus = 'O1/O2v2'
     assemble_name = job_result_data[0]["Assembly name"]
     locus_image_folder_path = os.path.join(upload_path, job_uuid, 'locus_image')
 
@@ -477,7 +481,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
         os.makedirs(locus_image_folder_path)
 
     gbk_file = reference_database_path + reference_db
-    gbk_path = os.path.join(upload_path, job_uuid, str(seq_no), locus + '.gbk')
+    gbk_path = os.path.join(upload_path, job_uuid, str(seq_no), locus.replace('/', '_') + '.gbk')
     svg_path = os.path.join(locus_image_folder_path, assemble_name + '.svg')
     svg_temp_path = os.path.join(locus_image_folder_path, assemble_name + '_temp.svg')
     png_path = os.path.join(locus_image_folder_path, assemble_name + '.png')
