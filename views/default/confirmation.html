@@ -143,7 +143,7 @@
                     title_bg="#ffffff"
                 pass}}
             <td bgcolor={{=title_bg}}><strong>{{=result_data[i]["Assembly name"]}}</strong></td>
-            <td bgcolor={{=title_bg}}><strong>Best K-locus: </strong>{{=result_data[i]["Best match"]["Locus name"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>Best locus: </strong>{{=result_data[i]["Best match"]["Locus name"]}}</td>
             <td bgcolor={{=title_bg}}><strong>Match confidence <a href="{{=URL('static','tooltips/tp1.html')}}?width=450" class="jTip" id="tp1_{{=i}}" name="Match Confidence" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["Best match"]["Match confidence"]}}</td>
             <td bgcolor={{=title_bg}}><strong>Cov <a href="{{=URL('static','tooltips/tp2.html')}}?width=450" class="jTip" id="tp2_{{=i}}" name="Cov" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Coverage"]}}</td>
             <td bgcolor={{=title_bg}}><strong>ID <a href="{{=URL('static','tooltips/tp3.html')}}?width=450" class="jTip" id="tp3_{{=i}}" name="ID" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Identity"]}}</td>
