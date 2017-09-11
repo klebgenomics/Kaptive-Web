@@ -288,7 +288,7 @@
                                     <td><strong>Allelic type <a href="{{=URL('static','tooltips/tp7.html')}}?width=450" class="jTip" id="tp7_{{=i}}" name="Allelic type" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> :</strong></td>
                                     <td width=90px></td>
                                     {{
-                                        allelic_typing_dict = result_data[i]["Allelic_typing"]
+                                        allelic_typing_dict = result_data[i].get("Allelic_typing", dict())
                                         for key in allelic_typing_dict:
                                     }}
                                     <td>{{=key + ':'}}</td>

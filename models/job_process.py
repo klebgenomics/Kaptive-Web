@@ -343,13 +343,14 @@ def run_kaptive(job_uuid, seq_no, fastafile, reference_db):
     if not os.path.exists(path):
         os.makedirs(path)
     # Set parameters for Kaptive Script
-    param1 = '-a ../' + fastafile
-    param2 = '-k ' + reference_database_path + reference_db
-    param3 = '-v'
-    param4 = '-g ' + reference_database_path + 'wzi_wzc_db.fasta'
+    param1 = ' -a ../' + fastafile
+    param2 = ' -k ' + reference_database_path + reference_db
+    param3 = ' -v'
+    if '_o_locus_' not in reference_db:
+        param4 = ' -g ' + reference_database_path + 'wzi_wzc_db.fasta'
 
     # Generate the command line to run the Kaptive Python script
-    cmd = 'python ' + base_path + 'kaptive.py' + ' ' + param1 + ' ' + param2 + ' ' + param3 + ' ' + param4
+    cmd = 'python ' + base_path + 'kaptive.py' + param1 + param2 + param3 + param4
     logger.debug('[' + job_uuid + '] [' + str(seq_no) + '] ' + 'Current work directory: ' + path)
     logger.debug('[' + job_uuid + '] [' + str(seq_no) + '] ' + 'Command to run the job: ' + cmd)
     process_call = subprocess.Popen(cmd, cwd=path, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
