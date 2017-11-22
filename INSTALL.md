@@ -2,24 +2,91 @@
 
 ## Installing Kaptive Web
 
-Follow these instructions to install <b>Kaptive Web</b>. To install the command-line version visit the main [Kaptive page](https://github.com/katholt/Kaptive).
- 
-* Download Web2Py framework from [here](http://www.web2py.com/). Installation guide can be found [here](http://web2py.com/books/default/chapter/29/13/deployment-recipes).
-* The default work directories ````/opt/kaptvie```` structure. These settings may be modified in ````settings.ini```` file.
+Would you like to install your own local instance of Kaptive Web? Here's how to do it!
 
-````
-.
-├── kaptive.py
-├── queue
-│   └── queue
-├── reference_database
-│   ├── 1-Klebsiella_k_locus_primary_reference.gbk
-│   ├── 2-Klebsiella_k_locus_variant_reference.gbk
-│   └── wzi_wzc_db.fasta
-└── uploads
-````  
 
-* Install the dependencies for <b>Kaptive</b> command-line version. The installation guide can be found [here](https://github.com/katholt/Kaptive#installation).
-* Download <b>Kaptive</b> command-line version from [here](https://github.com/katholt/kaptive), and copy the files to relevant directory. 
-* Install ````pygal````, ````pillow```` with ````pip````.
-* Install ````imagemagick````, installation guide can be found [here](https://www.imagemagick.org/script/binary-releases.php).
+#### Requirements
+
+* Python 2.7 with the following modules installed: pygal, pillow, BioPython, reportlab, lxml:
+  * `pip install pygal pillow BioPython reportlab lxml` (You might need `sudo`, if you're installing for your system's copy of Python.)
+* [BLAST+](http://www.ncbi.nlm.nih.gov/books/NBK279690/) command line tools (specifically `makeblastdb`, `blastn` and `tblastn`) available in your PATH.
+* The ImageMagick command line tool `convert`, with svg support.
+  * If installing on a Mac with homebrew, use `brew install imagemagick --with-librsvg`
+
+
+
+#### 1. Get web2py
+
+You'll need a local copy of [web2py](http://www.web2py.com/). Don't download the web2py app bundle, as that comes with its own copy of Python. We'll instead clone it from GitHub so we can run it with our copy of Python with the necessary modules installed.
+
+```
+git clone --recursive https://github.com/web2py/web2py.git
+```
+
+
+
+#### 2. Get Kaptive Web
+
+We'll put Kaptive Web into web2py's applications directory (and name it 'kaptive' because web2py doesn't like dashes in titles). It also needs a queue directory, so we'll make that now.
+
+```
+cd web2py/applications
+git clone https://github.com/kelwyres/Kaptive-Web kaptive
+mkdir kaptive/queue
+```
+
+
+
+#### 3. Get command line Kaptive
+
+Also download the [command line version of Kaptive](https://github.com/katholt/Kaptive) and put the files we need into our Kaptive Web directory.
+
+```
+git clone https://github.com/katholt/Kaptive kaptive-CLI
+cp kaptive-CLI/kaptive.py kaptive/
+cp -r kaptive-CLI/reference_database kaptive/
+```
+
+
+
+#### 4. Set paths
+
+You now must edit the paths in the `settings.ini` file (should be in the `web2py/applications/kaptive` directory). Use full paths (starting with '/').
+
+For example, if you cloned web2py onto your Desktop and your name is Ryan (what a great name), the `settings.ini` file should look something like this:
+
+```
+[Path]
+base_path = /Users/Ryan/Desktop/web2py/applications/kaptive/
+reference_database_path = /Users/Ryan/Desktop/web2py/applications/kaptive/reference_database/
+upload_path = /Users/Ryan/Desktop/web2py/applications/kaptive/uploads/
+download_path = /Users/Ryan/Desktop/web2py/applications/kaptive/downloads/
+queue_path = /Users/Ryan/Desktop/web2py/applications/kaptive/queue/
+
+[General]
+job_waiting_time = 60
+refresh_waiting_time = 60000
+```
+
+
+
+
+#### 5. Launch web2py
+
+Launching web2py is pretty easy!
+
+```
+cd ..  # go back to the web2py directory
+python web2py.py
+```
+
+A window should pop up asking for a password. Give it one and you'll be able to view the web2py interface at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+
+
+
+#### 6. Use Kaptive Web
+
+You'll now be able to use Kaptive Web at [http://127.0.0.1:8000/kaptive/default/index](http://127.0.0.1:8000/kaptive/default/index). You can also get there by going to 'My Sites' in the web2py interface, entering your password, and clicking on 'kaptive'.
+
+Enjoy!
