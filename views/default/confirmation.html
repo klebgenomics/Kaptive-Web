@@ -281,6 +281,7 @@
                             </table>
                         </td>
                     </tr>
+                    {{if len(result_data[i].get("Allelic_typing", dict())) > 0:}}
                     <tr>
                         <td colspan="6" style="padding-left:12px;">
                             <table>
@@ -294,7 +295,7 @@
                                     <td>{{=key + ':'}}</td>
                                                 {{
                                                     allele = allelic_typing_dict[key]["Allele"]
-                                                    if ("Perfect match" not in allelic_typing_dict[key] or not allelic_typing_dict[key]["Perfect match"]) and allele !="Not found":
+                                                    if ("Perfect match" not in allelic_typing_dict[key] or not allelic_typing_dict[key]["Perfect match"]) and allele != "Not found":
                                                             allele = str(allele) + '*'
                                                     pass
                                                 }}
@@ -304,6 +305,7 @@
                             </table>
                         </td>
                     </tr>
+                    {{else: pass}}
                     <tr>
                         <td colspan="6">
                             <table>
