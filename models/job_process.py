@@ -348,6 +348,8 @@ def run_kaptive(job_uuid, seq_no, fastafile, reference_db):
     param3 = ' -v'
     if '_o_locus_' not in reference_db:
         param4 = ' -g ' + reference_database_path + 'wzi_wzc_db.fasta'
+    else:
+        param4 = ''
 
     # Generate the command line to run the Kaptive Python script
     cmd = 'python ' + base_path + 'kaptive.py' + param1 + param2 + param3 + param4
