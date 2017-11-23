@@ -51,9 +51,9 @@ cp -r kaptive-CLI/reference_database kaptive/
 
 #### 4. Set paths
 
-You now must edit the paths in the `settings.ini` file (should be in the `web2py/applications/kaptive` directory). Use full paths (starting with '/').
+You now must edit the paths in the `settings.ini` file (should be in the `web2py/applications/kaptive` directory). Replace `/opt/kaptive` with full paths (starting with '/') appropriate for your computer.
 
-For example, if you cloned web2py onto your Desktop and your name is Ryan (what a great name), the `settings.ini` file should look something like this:
+The `settings.ini` file should look something like this, but with `/Users/Ryan/Desktop` (the path on my computer) replaced with the path for your web2py:
 
 ```
 [Path]
@@ -80,7 +80,7 @@ cd ..  # go back to the web2py directory
 python web2py.py
 ```
 
-A window should pop up asking for a password. Give it one and you'll be able to view the web2py interface at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+A window should pop up asking for a password (you don't need to change anything else). Give it one and you'll be able to view the web2py interface at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 
 
