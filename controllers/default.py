@@ -77,9 +77,7 @@ def jobs():
         Field('job_name', label=T('Job name (optional)')),
         Field('assembly',
               'upload',
-              requires=[IS_NOT_EMPTY(),
-                        IS_UPLOAD_FILENAME(extension='^(fasta|FASTA|zip|ZIP|gz|GZ|)$',
-                                           lastdot=True)],
+              requires=[IS_NOT_EMPTY()],
               label=T('Assembly file*'), custom_store=upload_file),
         Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference database')),
         captcha_field()  # Google reCaptcha v2
@@ -88,14 +86,16 @@ def jobs():
     # Process the form
     if form.accepts(request.vars, session):  # .process().accepted
         submit_time = str(datetime.now().strftime('%d %b %Y %H:%M:%S'))
-        file_path = os.path.join(upload_path, session.uuid, request.vars.assembly.filename)
+        file_dir = os.path.join(upload_path, session.uuid)
+        file_path = os.path.join(file_dir, request.vars.assembly.filename)
 
         # Unpack, if a zip / tar.gz file is uploaded
-        if request.vars.assembly.filename.endswith(".zip"):
-            process_zip_file(file_path)
+        compression = get_compression_type(file_path)
+        if compression == 'zip':
+            process_zip_file(file_dir, file_path)
             logger.debug('[' + session.uuid + '] ' + 'Zip file uploaded: ' + request.vars.assembly.filename)
-        elif request.vars.assembly.filename.endswith(".gz"):
-            process_gz_file(request.vars.assembly.filename)
+        elif compression == 'gz':
+            process_gz_file(file_dir, request.vars.assembly.filename)
             logger.debug('[' + session.uuid + '] ' + 'GZip file uploaded: ' + request.vars.assembly.filename)
 
         # Get a list of fasta files
@@ -104,7 +104,7 @@ def jobs():
         fastafiles = []
         no_of_fastas = 0
         for f in fastalist:
-            if f.endswith('.fasta'):
+            if is_file_fasta(os.path.join(upload_path, session.uuid, f)):
                 logger.debug('[' + session.uuid + '] ' + 'Fasta file(s) uploaded: ' + f)
                 fastafiles.append(f)
                 no_of_fastas += 1
@@ -215,7 +215,8 @@ def confirmation():
 
 def result():
     form = SQLFORM.factory(Field('uuid', requires=IS_NOT_EMPTY(), label=T('Token')),
-                           captcha_field())  # Google reCaptcha
+                           captcha_field()
+                           )
     token_status = 0
     if form.accepts(request.vars, session):
         token_uuid = request.vars.uuid.strip()

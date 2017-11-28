@@ -1,9 +1,48 @@
-from shutil import copyfile
+import zipfile
+import subprocess
+import shutil
+import os
+import tarfile
+
+
+def get_compression_type(filename):
+    """
+    Attempts to guess the compression (if any) on a file using the first few bytes.
+    http://stackoverflow.com/questions/13044562
+    """
+    magic_dict = {'gz': (b'\x1f', b'\x8b', b'\x08'),
+                  'bz2': (b'\x42', b'\x5a', b'\x68'),
+                  'zip': (b'\x50', b'\x4b', b'\x03', b'\x04')}
+    max_len = max(len(x) for x in magic_dict)
+
+    with open(filename, 'rb') as unknown_file:
+        file_start = unknown_file.read(max_len)
+    compression_type = 'plain'
+    for file_type, magic_bytes in magic_dict.items():
+        if file_start.startswith(magic_bytes):
+            compression_type = file_type
+    return compression_type
+
+
+def is_file_fasta(filename):
+    """
+    Returns whether or not the file appears to be a fasta file
+    """
+    with open(filename, 'rt') as fasta_file:
+        for i in range(2):
+            line = fasta_file.next().strip()
+            if not line:
+                return False
+            first_char = line[0]
+            if i == 0 and first_char != '>':
+                return False
+            if i == 1 and first_char not in ['A', 'C', 'G', 'T', 'a', 'c', 'g', 't']:
+                return False
+    return True
 
 
 # Validate and process zip file
-def process_zip_file(filename):
-    import zipfile
+def process_zip_file(file_dir, filename):
     zip_file = open(filename, 'r')
     if zipfile.is_zipfile(zip_file):
         zip_file.close()
@@ -14,7 +53,7 @@ def process_zip_file(filename):
             redirect(URL('kaptive'))
         else:
             try:
-                zip_ref.extractall("/opt/kaptive/uploads/" + session.uuid + "/")
+                zip_ref.extractall(file_dir)
             except:
                 session.flash = "Error occurs when try to unzip file. Please double check the zip file and try again."
                 redirect(URL('kaptive'))
@@ -25,14 +64,28 @@ def process_zip_file(filename):
         redirect(URL('kaptive'))
 
 
-# Process tar.gz file
-def process_gz_file(filename):
-    import subprocess
+def process_gz_file(file_dir, filename):
+    # First, unzip the file.
     try:
-        subprocess.call(['tar', 'xzf', filename], cwd=("/opt/kaptive/uploads/" + session.uuid + "/"))
+        subprocess.call(['gunzip', filename], cwd=(file_dir))
     except:
-        session.flash = "An error occurred when trying to unzip the file. Please double check the zip file and try again."
+        session.flash = "An error occurred when trying to unzip the file. Please double check the file and try again."
         redirect(URL('kaptive'))
+
+    # Then we check to see if it's a tar. If so, untar it.
+    unzipped_files = [f for f in os.listdir(file_dir) if os.path.isfile(os.path.join(file_dir, f))]
+    for f in unzipped_files:
+        try:
+            with tarfile.open(os.path.join(file_dir, f), 'r') as potential_tar:
+                tar_contents = potential_tar.getnames()
+        except tarfile.ReadError:
+            tar_contents = []
+        if len(tar_contents) > 0:
+            try:
+                subprocess.call(['tar', 'xf', f], cwd=(file_dir))
+            except:
+                session.flash = "An error occurred when trying to untar the file. Please double check the file and try again."
+                redirect(URL('kaptive'))
 
 
 # Read JSON Object from a file without blocking
@@ -190,7 +243,6 @@ def build_job_dict(uuid, reference, submit_time, fastafiles, no_of_fastas, uploa
 
 
 def upload_file(file, filename=None, path=None):
-    import shutil
     path = os.path.join(upload_path, session.uuid)
     if not os.path.exists(path):
         os.makedirs(path)
@@ -213,7 +265,7 @@ def backup_file(src, dst):
     try:
         with open(src, 'r') as file:
             lock_file(file)
-            copyfile(src, dst)
+            shutil.copyfile(src, dst)
             unlock_file(file)
         logger.debug('[' + uuid + '] ' + 'File backed up: ' + dst)
     except (IOError, OSError) as e:
