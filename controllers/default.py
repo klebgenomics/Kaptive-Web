@@ -80,7 +80,7 @@ def jobs():
               requires=[IS_NOT_EMPTY(),
                         IS_UPLOAD_FILENAME(extension='^(fasta|FASTA|zip|ZIP|gz|GZ|)$',
                                            lastdot=True)],
-              label=T('Assembly file (fasta, zip, fasta.gz or tar.gz)*'), custom_store=upload_file),
+              label=T('Assembly file*'), custom_store=upload_file),
         Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference database')),
         captcha_field()  # Google reCaptcha v2
     )

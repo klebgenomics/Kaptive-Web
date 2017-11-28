@@ -31,7 +31,7 @@ def process_gz_file(filename):
     try:
         subprocess.call(['tar', 'xzf', filename], cwd=("/opt/kaptive/uploads/" + session.uuid + "/"))
     except:
-        session.flash = "Error occurs when try to unzip file. Please double check the zip file and try again."
+        session.flash = "An error occurred when trying to unzip the file. Please double check the zip file and try again."
         redirect(URL('kaptive'))
 
 
