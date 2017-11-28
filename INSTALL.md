@@ -90,3 +90,13 @@ A window should pop up asking for a password (you don't need to change anything 
 You'll now be able to use Kaptive Web at [http://127.0.0.1:8000/kaptive/default/index](http://127.0.0.1:8000/kaptive/default/index). You can also get there by going to 'My Sites' in the web2py interface, entering your password, and clicking on 'kaptive'.
 
 Enjoy!
+
+
+
+
+
+## Disabling reCAPTCHA
+
+If you are running a local copy of Kaptive Web, you may want to get rid of the [reCAPTCHA](https://www.google.com/recaptcha/) "I'm not a robot" check.
+
+You can do this by making a couple small modifications to the `controllers/default.py` file. Specifically, delete the two instances of `captcha_field()`. Kaptive Web will now assume you're not a robot!
