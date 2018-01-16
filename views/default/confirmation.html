@@ -148,22 +148,22 @@
             <td bgcolor={{=title_bg}}><strong>Cov <a href="{{=URL('static','tooltips/tp2.html')}}?width=450" class="jTip" id="tp2_{{=i}}" name="Cov" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Coverage"]}}</td>
             <td bgcolor={{=title_bg}}><strong>ID <a href="{{=URL('static','tooltips/tp3.html')}}?width=450" class="jTip" id="tp3_{{=i}}" name="ID" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Identity"]}}</td>
             {{
-                gene_total = len(result_data[i]["K locus genes"])
+                gene_total = len(result_data[i]["Locus genes"])
                 gene_found = 0
                 gene_not_found = 0
                 gene_outside_locus = 0
                 gene_outside_locus_dict = {}
-                for j in range(0, len(result_data[i]["K locus genes"])):
-                    if result_data[i]["K locus genes"][j]["Result"] == "Found in locus":
+                for j in range(0, len(result_data[i]["Locus genes"])):
+                    if result_data[i]["Locus genes"][j]["Result"] == "Found in locus":
                         gene_found += 1
-                    elif result_data[i]["K locus genes"][j]["Result"] == "Not found":
+                    elif result_data[i]["Locus genes"][j]["Result"] == "Not found":
                         gene_not_found += 1
-                    elif result_data[i]["K locus genes"][j]["Result"] == "Found outside locus":
+                    elif result_data[i]["Locus genes"][j]["Result"] == "Found outside locus":
                         gene_outside_locus += 1
-                        if "Gene" not in result_data[i]["K locus genes"][j]["Reference"]:
-                            gene_outside_locus_dict.update({result_data[i]["K locus genes"][j]["Name"]: result_data[i]["K locus genes"][j]["tblastn result"]["Coverage"]})
+                        if "Gene" not in result_data[i]["Locus genes"][j]["Reference"]:
+                            gene_outside_locus_dict.update({result_data[i]["Locus genes"][j]["Name"]: result_data[i]["Locus genes"][j]["tblastn result"]["Coverage"]})
                         else:
-                            gene_outside_locus_dict.update({result_data[i]["K locus genes"][j]["Reference"]["Gene"]: result_data[i]["K locus genes"][j]["tblastn result"]["Coverage"]})
+                            gene_outside_locus_dict.update({result_data[i]["Locus genes"][j]["Reference"]["Gene"]: result_data[i]["Locus genes"][j]["tblastn result"]["Coverage"]})
                         pass
                     pass
                 pass

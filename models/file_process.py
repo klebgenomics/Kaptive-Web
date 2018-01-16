@@ -163,9 +163,7 @@ def create_table_file():
                'Expected genes outside locus',
                'Expected genes outside locus, details',
                'Other genes outside locus',
-               'Other genes outside locus, details',
-               'wzc',
-               'wzi']
+               'Other genes outside locus, details']
 
     with open(table_path, 'w') as table:
         table.write('\t'.join(headers))

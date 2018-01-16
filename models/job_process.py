@@ -505,7 +505,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
     if os.path.exists(gbk_path):
         A_rec = SeqIO.read(gbk_path, "genbank")
 
-        locus_genes = job_result_data[0]["K locus genes"]
+        locus_genes = job_result_data[0]["Locus genes"]
 
         A_colors = []
         A_cov = []
