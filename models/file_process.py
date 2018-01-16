@@ -139,7 +139,7 @@ def save_json_to_file(f, json_string):
         logger.error('[' + uuid + '] ' + 'Error writing file: \n' + f + '; ' + str(e))
 
 
-def create_table_file():
+def create_table_file(reference_db):
     table_path = os.path.join(upload_path, session.uuid, 'kaptive_results_table.txt')
 
     if os.path.isfile(table_path):
@@ -164,6 +164,9 @@ def create_table_file():
                'Expected genes outside locus, details',
                'Other genes outside locus',
                'Other genes outside locus, details']
+    if '_k_locus_' in reference_db:
+        headers += ['wzc',
+                    'wzi']
 
     with open(table_path, 'w') as table:
         table.write('\t'.join(headers))

@@ -119,7 +119,7 @@ def jobs():
                         filelist.get(request.vars.reference, None), submit_time)
 
         # Create empty result file
-        create_table_file()
+        create_table_file(request.vars.reference)
 
         # Build job list
         build_job_dict(session.uuid, request.vars.reference, submit_time, fastafiles, no_of_fastas, upload_path)

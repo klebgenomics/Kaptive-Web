@@ -346,7 +346,7 @@ def run_kaptive(job_uuid, seq_no, fastafile, reference_db):
     param1 = ' -a ../' + fastafile
     param2 = ' -k ' + reference_database_path + reference_db
     param3 = ' -v'
-    if '_o_locus_' not in reference_db:
+    if '_k_locus_' in reference_db:
         param4 = ' -g ' + reference_database_path + 'wzi_wzc_db.fasta'
     else:
         param4 = ''
