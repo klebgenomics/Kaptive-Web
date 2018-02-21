@@ -104,6 +104,23 @@ def jobs():
         no_of_fastas = 0
         for f in fastalist:
             if is_file_fasta(os.path.join(upload_path, session.uuid, f)):
+
+                # Spaces and hashes cause problems, so rename files to be spaceless and hashless, if needed.
+                if ' ' in f:
+                    new_f = f.replace(' ', '_')
+                    logger.debug('[' + session.uuid + '] ' + 'Renaming file to remove spaces: ' +
+                                 f + ' -> ' + new_f)
+                    os.rename(os.path.join(upload_path, session.uuid, f),
+                              os.path.join(upload_path, session.uuid, new_f))
+                    f = new_f
+                if '#' in f:
+                    new_f = f.replace('#', '_')
+                    logger.debug('[' + session.uuid + '] ' + 'Renaming file to remove hashes: ' +
+                                 f + ' -> ' + new_f)
+                    os.rename(os.path.join(upload_path, session.uuid, f),
+                              os.path.join(upload_path, session.uuid, new_f))
+                    f = new_f
+
                 logger.debug('[' + session.uuid + '] ' + 'Fasta file(s) uploaded: ' + f)
                 fastafiles.append(f)
                 no_of_fastas += 1
