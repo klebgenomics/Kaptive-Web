@@ -22,7 +22,7 @@ download_path = Config.get('Path', 'download_path')
 queue_path = Config.get('Path', 'queue_path')
 job_waiting_time = Config.get('General', 'job_waiting_time')
 refresh_waiting_time = Config.get('General', 'refresh_waiting_time')
-
+captcha = Config.getboolean('Security', 'captcha')
 # Set path
 job_queue_path = os.path.join(queue_path, 'queue')
 
@@ -73,15 +73,14 @@ def jobs():
         response.flash = 'Internal error. No reference database file found. Please contact us.'
 
     # Create the form
-    form = SQLFORM.factory(
-        Field('job_name', label=T('Job name (optional)')),
-        Field('assembly',
-              'upload',
-              requires=[IS_NOT_EMPTY()],
-              label=T('Assembly file*'), custom_store=upload_file),
-        Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference database')),
-        captcha_field()  # Google reCaptcha v2
-    )
+    fields = [Field('job_name', label=T('Job name (optional)')),
+              Field('assembly','upload', requires=[IS_NOT_EMPTY()], label=T('Assembly file*'), custom_store=upload_file),
+              Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference database'))
+              ]
+    if captcha:
+        fields.append(captcha_field()) # Google reCaptcha v2
+
+    form = SQLFORM.factory(*fields)
 
     # Process the form
     if form.accepts(request.vars, session):  # .process().accepted
@@ -214,9 +213,11 @@ def confirmation():
 
 
 def result():
-    form = SQLFORM.factory(Field('uuid', requires=IS_NOT_EMPTY(), label=T('Token')),
-                           captcha_field()
-                           )
+    fields = [Field('uuid', requires=IS_NOT_EMPTY(), label=T('Token'))]
+    if captcha:
+        fields.append(captcha_field())
+    form = SQLFORM.factory(*fields)
+
     token_status = 0
     if form.accepts(request.vars, session):
         token_uuid = request.vars.uuid.strip()
