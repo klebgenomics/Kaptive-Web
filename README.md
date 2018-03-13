@@ -122,8 +122,9 @@ In fact, 1753_ST258 is a deletion variant of KL107. Running **Kaptive** with the
 
 ## Databases available in Kaptive Web
 
-Currently only _Klebsiella_ K-locus databases are available in **Kaptive Web**. You can run the [command-line version of Kaptive](https://github.com/katholt/kaptive) with any appropriately formatted database of your own.
-If you have a locus database that you would like to be added to **Kaptive Web** for use by yourself and others in the community, [please get in touch](https://github.com/kelwyres/Kaptive-Web/issues).
+Currently only _Klebsiella_ K-locus and O-locus databases are available in **Kaptive Web**. You can run the [command-line version of Kaptive](https://github.com/katholt/kaptive) with any appropriately formatted database of your own.
+
+If you have a locus database that you would like to be added to **Kaptive Web** for use by yourself and others in the community, [please get in touch](https://github.com/kelwyres/Kaptive-Web/issues). Similarly, if you have identified new locus variants not currently in the existing databases, let us know!
 
 #### _Klebsiella_ K-locus databases
 
