@@ -142,6 +142,14 @@ Note that KL156-D1 is included in the primary reference database since no full-l
 We recommend screening your data with the primary reference database first to find the best-matching K-locus type. If you have poor matches or are particularly interested in detecting variant loci you should try the variant database.
 WARNING: If you use the variants database please inspect your results carefully and decide for yourself what constitutes a confident match! Kaptive is not optimised for accurate variant detection. 
 
+#### _Klebsiella_ O locus database
+
+The O locus database (`Klebsiella_o_locus_primary_reference.gbk`) contains annotated sequences for 12 distinct _Klebsiella_ O loci.
+
+O locus classification requires some special logic, as the O1 and O2 serotypes contain the same locus genes. It is two additional genes elsewhere in the chromosome (_wbbY_ and _wbbZ_) which results in the O1 antigen. Kaptive therefore looks for these genes to properly call an assembly as either O1 or O2. When only one of the two additional genes can be found, the result is ambiguous and Kaptive will report a locus type of O1/O2.
+
+Read more about the O locus and its classification here: [The diversity of _Klebsiella_ pneumoniae surface polysaccharides](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5320592/).
+
 
 
 ## FAQs
