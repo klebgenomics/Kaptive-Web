@@ -51,7 +51,7 @@ cp -r kaptive-CLI/reference_database kaptive/
 
 #### 4. Set paths
 
-You now must edit the paths in the `settings.ini` file (should be in the `web2py/applications/kaptive` directory). Replace `/opt/kaptive` with full paths (starting with '/') appropriate for your computer.
+You now must edit the paths in the `settings.ini` file (should be in the `web2py/applications/kaptive` directory). Replace `/opt/web2py/applications/kaptive` with full paths (starting with '/') appropriate for your computer.
 
 The `settings.ini` file should look something like this, but with `/Users/Ryan/Desktop` (the path on my computer) replaced with the path for your web2py:
 
