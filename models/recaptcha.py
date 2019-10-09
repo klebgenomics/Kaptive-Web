@@ -1,7 +1,7 @@
 def captcha_field(request=request):
     from gluon.tools import Recaptcha2
     w = lambda x, y: Recaptcha2(request,
-                                '6LckfBMUAAAAACrjs24Fp--R5N5k9j3VCxA2LYNN',
-                                '6LckfBMUAAAAAAQ17RsRcik73rSGlMIR1nAnUPGz',
+                                '6LeBjrcUAAAAABPDnsWu-2qxvAwgRnS4PfYDjBbu',
+                                '6LeBjrcUAAAAAD29Ae0vf4Y9YDaNlTfMB1Sk7dMt',
                                 error_message='Invalid, please try again.')
     return Field('captcha', 'string', label=T('Verify'), widget=w, default='ok')
