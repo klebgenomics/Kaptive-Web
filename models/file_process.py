@@ -164,7 +164,7 @@ def create_table_file(reference_db):
                'Expected genes outside locus, details',
                'Other genes outside locus',
                'Other genes outside locus, details']
-    if '_k_locus_' in reference_db:
+    if 'Klebsiella_k_locus_' in reference_db:
         headers += ['wzc',
                     'wzi']
 
