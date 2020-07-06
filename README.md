@@ -173,7 +173,7 @@ The _A. baumannii_ OC (lipooligosaccharide outer core) locus reference database 
 WARNING: These databases have been developed and tested specifically for _A. baumannii_ and may not be suitable for screening other _Acinetobacter_ species. You can check that your assembly is a true _A. baumannii_ by screening for the _oxaAB_ gene e.g. using blastn.
 
  Database versions:
-* Kaptive v0.7.0 and above include the original _A. baumannii_ K and OC locus databases, as described in [Wyres, KL. et al. bioRxiv (2019).](https://www.biorxiv.org/content/10.1101/869370v1) 
+* Kaptive v0.7.0 and above include the original _A. baumannii_ K and OC locus databases, as described in [Wyres, KL. et al. Microbial Genomics (2020).](https://doi.org/10.1099/mgen.0.000339)
 
 Lists of papers describing each of the individual _A. baumannii_ reference loci can be found [here](https://github.com/katholt/Kaptive/tree/master/extras).
 
