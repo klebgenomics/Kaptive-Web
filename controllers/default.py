@@ -54,20 +54,32 @@ def jobs():
     session.uuid = str(uuid.uuid4())
 
     # -------------------------------------------------------------------------
-    # Get a list of reference database files, order by file name.
+    # Get a list of reference database files, order by file name but with all
+    # Klebsiella databases listed first.
     #  - Copy the database files to this folder.
     #  - Name the first one (default) 1-xxxx, second one 2-xxxx, so on so forth.
     # -------------------------------------------------------------------------
-    filelist = {}
+    filelist_klebsiella = dict()
+    filelist_other = dict()
     logger.debug('[' + session.uuid + '] ' + 'Reference database file found:')
     for f in sorted(os.listdir(reference_database_path)):
         if os.path.isfile(os.path.join(reference_database_path, f)) and fnmatch.fnmatch(f, '*.gbk'):
             fname = re.sub('\.gbk$', '', f)
             fname = re.sub('_', ' ', fname)
             fname = re.sub('\d-', '', fname)
+            fname = fname.replace(' k ', ' K ').replace(' o ', ' O ')
             logger.debug('[' + session.uuid + '] ' + 'Database Name: ' + f)
-            filelist.update({f: fname.replace(' k ', ' K ').replace(' o ', ' O ')})
-    filelist_sorted = sorted(filelist.iteritems(), key=lambda d: d[0])
+            if 'klebsiella' in fname.lower():
+                filelist_klebsiella[f] = fname
+            else:
+                filelist_other[f] = fname
+    # Create sorted list of tuples with all Klebsiella databases preceeding databases of other genus
+    filelist_klebsiella_sorted = sorted(filelist_klebsiella.items(), key=lambda k: k[0])
+    filelist_other_sorted = sorted(filelist_other.items(), key=lambda k: k[0])
+    filelist_sorted = filelist_klebsiella_sorted + filelist_other_sorted
+    # Merge filelist dicts as this is used below and later
+    filelist = filelist_klebsiella.copy()
+    filelist.update(filelist_other)
     if len(filelist) == 0:
         logger.error('[' + session.uuid + '] ' + 'No reference database file found.')
         response.flash = 'Internal error. No reference database file found. Please contact us.'
