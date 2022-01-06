@@ -6,7 +6,7 @@ def write_to_result_table(result_path, final_result_path, job_uuid, seq_no):
     with open(result_path) as f:
         no_of_lines = sum(1 for _ in f)
     if no_of_lines == 2:
-        raw_result = list(csv.reader(open(result_path, 'rb'), delimiter='\t'))
+        raw_result = list(csv.reader(open(result_path, 'rt'), delimiter='\t'))
         line = raw_result[1]
         backup_file(final_result_path, (final_result_path + '.bak'))
         with open(final_result_path, 'at') as table:
@@ -64,7 +64,7 @@ def write_to_result_json(job_result_path, result_path, seq_no, retry = 0):
     else:
         job_json_lock.acquire()
         try:
-            with open(result_path, 'wb') as result_file:
+            with open(result_path, 'wt') as result_file:
                 json.dump(job_result_data, result_file, indent=4)
                 job_json_lock.release()
                 # unlock_file(result_file)

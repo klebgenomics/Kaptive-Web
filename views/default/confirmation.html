@@ -144,6 +144,7 @@
                 pass}}
             <td bgcolor={{=title_bg}}><strong>{{=result_data[i]["Assembly name"]}}</strong></td>
             <td bgcolor={{=title_bg}}><strong>Best locus: </strong>{{=result_data[i]["Best match"]["Locus name"]}}</td>
+            <td bgcolor={{=title_bg}}><strong>Best type: </strong>{{=result_data[i]["Best match"]["Type"]}}</td>
             <td bgcolor={{=title_bg}}><strong>Match confidence <a href="{{=URL('static','tooltips/tp1.html')}}?width=450" class="jTip" id="tp1_{{=i}}" name="Match Confidence" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["Best match"]["Match confidence"]}}</td>
             <td bgcolor={{=title_bg}}><strong>Cov <a href="{{=URL('static','tooltips/tp2.html')}}?width=450" class="jTip" id="tp2_{{=i}}" name="Cov" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Coverage"]}}</td>
             <td bgcolor={{=title_bg}}><strong>ID <a href="{{=URL('static','tooltips/tp3.html')}}?width=450" class="jTip" id="tp3_{{=i}}" name="ID" style="color:rgb(62,63,57)"><i class="fa fa-info-circle" style="color"></i></a> : </strong>{{=result_data[i]["blastn result"]["Identity"]}}</td>
@@ -207,7 +208,7 @@
                                                         {{for key in other_gene_in_dict:}}
                                                         <tr>
                                                             <td style="border-style:none; white-space:nowrap">{{=key}}</td>
-                                                            <td style="border-style:none" align="right">{{=str(other_gene_in_dict[key]["tblastn result"]["Identity"]).translate(None, '%')}}</td>
+                                                            <td style="border-style:none" align="right">{{=str(other_gene_in_dict[key]["tblastn result"]["Identity"]).translate('%')}}</td>
                                                         </tr>
                                                         {{pass}}
                                                     </table>
@@ -238,7 +239,7 @@
                                                         {{for key in other_gene_outside_dict:}}
                                                         <tr>
                                                             <td style="border-style:none; white-space:nowrap">{{=key}}</td>
-                                                            <td style="border-style:none" align="right">{{=str(other_gene_outside_dict[key]["tblastn result"]["Identity"]).translate(None, '%')}}</td>
+                                                            <td style="border-style:none" align="right">{{=str(other_gene_outside_dict[key]["tblastn result"]["Identity"]).translate('%')}}</td>
                                                         </tr>
                                                         {{pass}}
                                                     </table>
@@ -268,7 +269,7 @@
                                                         {{for key in gene_outside_locus_dict:}}
                                                         <tr>
                                                             <td style="border-style:none; white-space:nowrap">{{=key}}</td>
-                                                            <td style="border-style:none">{{=str(gene_outside_locus_dict[key]).translate(None, '%')}}</td>
+                                                            <td style="border-style:none">{{=str(gene_outside_locus_dict[key]).translate('%')}}</td>
                                                         </tr>
                                                         {{pass}}
                                                     </table>

@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import logging
 import os
 import subprocess
@@ -13,7 +13,7 @@ job_json_lock = threading.Lock()
 job_table_lock = threading.Lock()
 
 # Read config file
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read('applications/kaptive/settings.ini')
 base_path = Config.get('Path', 'base_path')
 reference_database_path = Config.get('Path', 'reference_database_path')
@@ -31,7 +31,7 @@ logger = logging.getLogger("kaptive")
 logger.setLevel(logging.DEBUG)
 
 # Get number of tblastn or blastn running (for debug purpose only)
-procs = subprocess.check_output(['ps', 'uaxw']).splitlines()
+procs = subprocess.check_output(['ps', 'uaxw']).decode('utf-8').splitlines()
 blast_procs = [proc for proc in procs if 'blast' in proc]
 blast_count = len(blast_procs)
 if blast_count > 0:
@@ -217,7 +217,7 @@ def confirmation():
                 logger.debug('[' + session.uuid + '] ' + 'No available worker. Job is in the queue.')
                 result_status = 2
             else:
-                content = 'Processing your job, it usually takes 10 minutes for each assembly file to complete. ' \
+                content = 'Processing your job, it usually takes ~1 minute for each assembly file to complete. ' \
                           'This page will refresh every ' + str(refresh_time / 1000) + \
                           ' seconds until the process is completed. Please do not close this page or start a new job.'
                 if os.path.exists(result_json_path):

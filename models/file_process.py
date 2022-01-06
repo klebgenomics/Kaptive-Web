@@ -30,7 +30,7 @@ def is_file_fasta(filename):
     """
     with open(filename, 'rt') as fasta_file:
         for i in range(2):
-            line = fasta_file.next().strip()
+            line = next(fasta_file).strip()  #  file object doesn't have next method, instead use next(f) to skip line
             if not line:
                 return False
             first_char = line[0]
@@ -132,7 +132,7 @@ def save_json_to_file(f, json_string):
         uuid = session.uuid
 
     try:
-        with open(f, 'wb+') as file:
+        with open(f, 'wt+') as file:
             json.dump(json_string, file, indent=4)
             logger.debug('[' + uuid + '] ' + 'Wrote to file: ' + f)
     except (IOError, OSError) as e:
@@ -150,6 +150,7 @@ def create_table_file(reference_db):
 
     headers = ['Assembly',
                'Best match locus',
+               'Best match type',
                'Match confidence',
                'Problems',
                'Coverage',

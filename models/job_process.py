@@ -358,7 +358,7 @@ def run_kaptive(job_uuid, seq_no, fastafile, reference_db):
     process_call = subprocess.Popen(cmd, cwd=path, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process_call.communicate()
     time.sleep(3)
-    return out, err
+    return out.decode('utf-8'), err.decode('utf-8')  # decoding needed for subprocess communicate stout and stderr
 
 
 def process_result(job_file_path, job_queue_path, upload_path, job_result_path, job_table_path, table_path, result_path,
@@ -463,7 +463,9 @@ def process_result(job_file_path, job_queue_path, upload_path, job_result_path, 
 def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_no):
     from reportlab.lib.colors import black
     import lxml.etree as le
-
+    import cairosvg
+    import numpy as np
+    from PIL import Image
 
     if (('session.uuid' not in locals()) and ('session.uuid' not in globals()) and
             ('session.uuid' not in vars())) or session.uuid is None:
@@ -575,10 +577,10 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                         x=0, yt=0, yb=0, y=0,
                         fragments=1,
                         start=0, end=max_len)
-        # gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG
+        #gd_diagram.write(png_path, "PNG") # Use GenomeDiagram to generate PNG crops the diagram
         gd_diagram.write(svg_path, "SVG")
 
-        with open(svg_path, 'r') as svg_file:
+        with open(svg_path, 'rb') as svg_file:
             svg = le.parse(svg_file)
             count_a = 0
             count_b = 0
@@ -620,13 +622,13 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                 if elem.attrib['transform'] == "scale(1,-1) translate(0,-100)":
                     elem.attrib['transform'] = "scale(1,-1) translate(0,-300)"
 
-        with open(svg_temp_path, 'w') as f:
-            f.write(le.tostring(svg))
+            svg = le.tostring(svg, pretty_print=True, encoding="utf-8")
+            cairosvg.svg2png(svg, write_to=png_path)
+            img = np.array(Image.open(png_path))
+            idx = np.where(img[:, :, 3] > 0)
+            x0, y0, x1, y1 = idx[1].min(), idx[0].min(), idx[1].max(), idx[0].max()
+            out = Image.fromarray(img[y0:y1 + 1, x0:x1 + 1, :])
+            out.save(png_path)
 
-        convert_cmd = 'convert ' + svg_temp_path + ' ' + png_path
-        subprocess.call(convert_cmd, shell=True)
-
-        trim_cmd = 'convert ' + png_path + ' -trim ' + png_path
-        subprocess.call(trim_cmd, shell=True)
     else:
         logger.debug('[' + job_uuid + '] ' + "Failed to create locus image.")
