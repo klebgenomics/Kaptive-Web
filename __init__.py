@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import os
 import json
 import multiprocessing
@@ -6,7 +6,7 @@ from datetime import datetime
 from collections import OrderedDict
 
 
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read('applications/kaptive/settings.ini')
 queue_path = Config.get('Path', 'queue_path')
 upload_path = Config.get('Path', 'upload_path')
@@ -15,7 +15,7 @@ upload_path = Config.get('Path', 'upload_path')
 # Save JSON Object to a file
 def save_json_to_file(f, json_string):
     try:
-        with open(f, 'wb+') as file:
+        with open(f, 'wt+') as file:
             json.dump(json_string, file, indent=4)
             print("Wrote to file: " + f)
     except (IOError, OSError) as e:
@@ -45,8 +45,8 @@ def read_json_from_file(f):
 
 job_queue_path = os.path.join(queue_path, 'queue')
 available_worker = multiprocessing.cpu_count() - 1
-if os.path.exists(job_queue_path):
-    data = OrderedDict()
+if os.path.exists(job_queue_path) and os.path.getsize(job_queue_path) > 2:  # catches empty queue (i.e. if file contains {})
+    # data = OrderedDict()  # read_json_from_file returns an OrderedDict even if empty, no need to declare here.
     # Put the jobs in processing back to the job queue
     data = read_json_from_file(job_queue_path)
     job_queue = data['Job queue']
@@ -58,7 +58,7 @@ if os.path.exists(job_queue_path):
     data['Available worker'] = available_worker
     data['Last update (worker)'] = str(datetime.now().strftime('%d %b %Y %H:%M:%S'))
     save_json_to_file(job_queue_path, data)
-    print "Queue file updated."
+    print("Queue file updated.")
 
     for i in data['Job queue']:
         job_list_path = os.path.join(upload_path, i[0], 'job_list.json')
@@ -75,7 +75,7 @@ if os.path.exists(job_queue_path):
                 job_name = j['Fasta file']
                 job_seq = j['Job seq']
                 save_json_to_file(job_list_path, job_data)
-                print "Fixed coruppted data in job list."
+                print("Fixed coruppted data in job list.")
                 break
 else:
     data = OrderedDict()
@@ -86,5 +86,5 @@ else:
     data['Available worker'] = available_worker
     data['Last update (worker)'] = str(datetime.now().strftime('%d %b %Y %H:%M:%S'))
     save_json_to_file(job_queue_path, data)
-    print "Queue file created."
+    print("Queue file created.")
 
