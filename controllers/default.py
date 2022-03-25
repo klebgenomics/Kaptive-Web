@@ -61,14 +61,14 @@ def jobs():
     # -------------------------------------------------------------------------
     filelist_klebsiella = dict()
     filelist_other = dict()
-    logger.debug('[' + session.uuid + '] ' + 'Reference database file found:')
+    logger.debug(f'[{session.uuid}] Reference database file found:')
     for f in sorted(os.listdir(reference_database_path)):
         if os.path.isfile(os.path.join(reference_database_path, f)) and fnmatch.fnmatch(f, '*.gbk'):
             fname = re.sub('\.gbk$', '', f)
             fname = re.sub('_', ' ', fname)
             fname = re.sub('\d-', '', fname)
             fname = fname.replace(' k ', ' K ').replace(' o ', ' O ')
-            logger.debug('[' + session.uuid + '] ' + 'Database Name: ' + f)
+            logger.debug(f'[{session.uuid}] Database Name: ' + f)
             if 'klebsiella' in fname.lower():
                 filelist_klebsiella[f] = fname
             else:
@@ -81,7 +81,7 @@ def jobs():
     filelist = filelist_klebsiella.copy()
     filelist.update(filelist_other)
     if len(filelist) == 0:
-        logger.error('[' + session.uuid + '] ' + 'No reference database file found.')
+        logger.error(f'[{session.uuid}] No reference database file found.')
         response.flash = 'Internal error. No reference database file found. Please contact us.'
 
     # Create the form
@@ -104,10 +104,10 @@ def jobs():
         compression = get_compression_type(file_path)
         if compression == 'zip':
             process_zip_file(file_dir, file_path)
-            logger.debug('[' + session.uuid + '] ' + 'Zip file uploaded: ' + request.vars.assembly.filename)
+            logger.debug(f'[{session.uuid}] Zip file uploaded: ' + request.vars.assembly.filename)
         elif compression == 'gz':
             process_gz_file(file_dir, request.vars.assembly.filename)
-            logger.debug('[' + session.uuid + '] ' + 'GZip file uploaded: ' + request.vars.assembly.filename)
+            logger.debug(f'[{session.uuid}] GZip file uploaded: ' + request.vars.assembly.filename)
 
         # Get a list of fasta files
         fastalist = [f for f in os.listdir(os.path.join(upload_path, session.uuid))
@@ -120,27 +120,27 @@ def jobs():
                 # Spaces and hashes cause problems, so rename files to be spaceless and hashless, if needed.
                 if ' ' in f:
                     new_f = f.replace(' ', '_')
-                    logger.debug('[' + session.uuid + '] ' + 'Renaming file to remove spaces: ' +
+                    logger.debug(f'[{session.uuid}] Renaming file to remove spaces: ' +
                                  f + ' -> ' + new_f)
                     os.rename(os.path.join(upload_path, session.uuid, f),
                               os.path.join(upload_path, session.uuid, new_f))
                     f = new_f
                 if '#' in f:
                     new_f = f.replace('#', '_')
-                    logger.debug('[' + session.uuid + '] ' + 'Renaming file to remove hashes: ' +
+                    logger.debug(f'[{session.uuid}] Renaming file to remove hashes: ' +
                                  f + ' -> ' + new_f)
                     os.rename(os.path.join(upload_path, session.uuid, f),
                               os.path.join(upload_path, session.uuid, new_f))
                     f = new_f
 
-                logger.debug('[' + session.uuid + '] ' + 'Fasta file(s) uploaded: ' + f)
+                logger.debug(f'[{session.uuid}] Fasta file(s) uploaded: ' + f)
                 fastafiles.append(f)
                 no_of_fastas += 1
         if no_of_fastas == 0:
-            logger.error('[' + session.uuid + '] ' + 'No fasta file found in uploaded file.')
+            logger.error(f'[{session.uuid}] No fasta file found in uploaded file.')
             redirect(URL(r=request, f='jobs', vars=dict(message=T("No fasta file was found in the uploaded file."))))
         fastafiles_string = ', '.join(fastafiles)
-        logger.debug('[' + session.uuid + '] ' + 'Selected reference database: ' + request.vars.reference)
+        logger.debug(f'[{session.uuid}] Selected reference database: ' + request.vars.reference)
 
         # Save job details to a JSON file
         build_meta_json(session.uuid, request.vars.job_name, fastafiles_string, no_of_fastas,
@@ -164,7 +164,7 @@ def jobs():
         redirect(URL('confirmation'))
     elif form.errors:
         response.flash = 'Error(s) found in the form. Please double check and submit again.'
-        logger.error('[' + session.uuid + '] ' + 'Error(s) found in the form.')
+        logger.error(f'[{session.uuid}] Error(s) found in the form.')
     return dict(form=form)
 
 
@@ -181,7 +181,7 @@ def confirmation():
 
     if (not os.path.exists(meta_file)) and (not os.path.exists(job_file_path)):  # If files does not exist
         session.flash = T('Internal Error. Job list or meta file not found. Please submit the job again.')
-        logger.debug('[' + session.uuid + '] ' + '(Confirmation) Job list or meta file not found.')
+        logger.debug(f'[{session.uuid}] (Confirmation) Job list or meta file not found.')
         redirect(URL('jobs'))
 
     meta_data = read_json_from_file(meta_file)
@@ -214,7 +214,7 @@ def confirmation():
         if os.path.exists(result_path):  # If result txt file exists
             if total_jobs == pending_jobs:
                 content = 'Job is in the queue. It will be processed when a processor is available.'
-                logger.debug('[' + session.uuid + '] ' + 'No available worker. Job is in the queue.')
+                logger.debug(f'[{session.uuid}] No available worker. Job is in the queue.')
                 result_status = 2
             else:
                 content = 'Processing your job, it usually takes ~1 minute for each assembly file to complete. ' \
@@ -223,7 +223,7 @@ def confirmation():
                 if os.path.exists(result_json_path):
                     result_data = read_json_from_file(result_json_path)
                 else:
-                    logger.debug('[' + session.uuid + '] ' + 'Cannot find final result JSON file.')
+                    logger.debug(f'[{session.uuid}] Cannot find final result JSON file.')
                 result_status = 2
         else:
             content = 'Job is not running, please submit job again.'

@@ -6,6 +6,7 @@ import tarfile
 
 
 def get_compression_type(filename):
+    logger.debug(f'Checking compression of {filename}')
     """
     Attempts to guess the compression (if any) on a file using the first few bytes.
     http://stackoverflow.com/questions/13044562
@@ -28,24 +29,27 @@ def is_file_fasta(filename):
     """
     Returns whether or not the file appears to be a fasta file
     """
-    with open(filename, 'rt') as fasta_file:
-        for i in range(2):
-            line = next(fasta_file).strip()  #  file object doesn't have next method, instead use next(f) to skip line
-            if not line:
+    try:
+        with open(filename, 'rt') as fasta_file:
+            try:
+                line1, line2 = [next(fasta_file) for x in range(2)]
+                if not line1 or not line2:
+                    return False
+                elif line1[0] != '>' or line2[0] not in ['A', 'C', 'G', 'T', 'a', 'c', 'g', 't']:
+                    return False
+                else:
+                    return True
+            except Exception as ee:
+                logger.debug(f'Could not read {filename}: {ee}')
                 return False
-            first_char = line[0]
-            if i == 0 and first_char != '>':
-                return False
-            if i == 1 and first_char not in ['A', 'C', 'G', 'T', 'a', 'c', 'g', 't']:
-                return False
-    return True
+    except Exception as e:
+        logger.debug(f'Could not open {filename}: {e}')
+        return False
 
 
 # Validate and process zip file
 def process_zip_file(file_dir, filename):
-    zip_file = open(filename, 'r')
-    if zipfile.is_zipfile(zip_file):
-        zip_file.close()
+    if zipfile.is_zipfile(filename):  # https://docs.python.org/3/library/zipfile.html#zipfile.is_zipfile (Changed in version 3.1: Support for file and file-like objects.)
         zip_ref = zipfile.ZipFile(filename, 'r')
         if zip_ref.testzip() is not None:
             zip_ref.close()
