@@ -45,8 +45,8 @@ def read_json_from_file(f):
 
 job_queue_path = os.path.join(queue_path, 'queue')
 available_worker = multiprocessing.cpu_count() - 1
-if os.path.exists(job_queue_path) and os.path.getsize(job_queue_path) > 2:  # catches empty queue (i.e. if file contains {})
-    # data = OrderedDict()  # read_json_from_file returns an OrderedDict even if empty, no need to declare here.
+if os.path.exists(job_queue_path):  # and os.path.getsize(job_queue_path) > 2: catches empty queue (i.e. if file contains {})
+    data = OrderedDict()  # read_json_from_file returns an OrderedDict even if empty, no need to declare here.
     # Put the jobs in processing back to the job queue
     data = read_json_from_file(job_queue_path)
     job_queue = data['Job queue']

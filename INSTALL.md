@@ -7,11 +7,9 @@ Would you like to install your own local instance of Kaptive Web? Here's how to 
 
 #### Requirements
 
-* Python 2.7 with the following modules installed: pygal, pillow, BioPython, reportlab, lxml:
+* Python >=3.6 with the following modules installed: pygal, pillow, BioPython, reportlab, lxml:
   * `pip install pygal pillow BioPython reportlab lxml` (You might need `sudo`, if you're installing for your system's copy of Python.)
 * [BLAST+](http://www.ncbi.nlm.nih.gov/books/NBK279690/) command line tools (specifically `makeblastdb`, `blastn` and `tblastn`) available in your PATH.
-* The ImageMagick command line tool `convert`, with svg support.
-  * If installing on a Mac with homebrew, use `brew install imagemagick --with-librsvg`
 
 
 
