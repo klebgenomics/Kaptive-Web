@@ -491,18 +491,22 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
     svg_temp_path = os.path.join(locus_image_folder_path, assemble_name + '_temp.svg')
     png_path = os.path.join(locus_image_folder_path, assemble_name + '.png')
 
-    for record in SeqIO.parse(gbk_file, 'genbank'):
-        for feature in record.features:
-            if feature.type == 'source' and 'note' in feature.qualifiers:
-                for note in feature.qualifiers['note']:
-                    if ':' in note:
-                        if note.split(':')[1].strip() == locus:
-                            SeqIO.write(record, gbk_path, 'genbank')
-                            logger.debug('[' + job_uuid + '] ' + "Locus genbank file created.")
-                    elif '=' in note:
-                        if note.split('=')[1].strip() == locus:
-                            SeqIO.write(record, gbk_path, 'genbank')
-                            logger.debug('[' + job_uuid + '] ' + "Locus genbank file created.")
+    try:  # This try-except clause prevents the re-submission of the same job if the locus image cannot be drawn due
+        # to a problematic record in the reference database. Tom Stanton - 03.10.2022
+        for record in SeqIO.parse(gbk_file, 'genbank'):
+            for feature in record.features:
+                if feature.type == 'source' and 'note' in feature.qualifiers:
+                    for note in feature.qualifiers['note']:
+                        if ':' in note:
+                            if note.split(':')[1].strip() == locus:
+                                SeqIO.write(record, gbk_path, 'genbank')
+                                logger.debug('[' + job_uuid + '] ' + "Locus genbank file created.")
+                        elif '=' in note:
+                            if note.split('=')[1].strip() == locus:
+                                SeqIO.write(record, gbk_path, 'genbank')
+                                logger.debug('[' + job_uuid + '] ' + "Locus genbank file created.")
+    except Exception as e:
+        logger.error('[' + job_uuid + '] ' + 'Could not parse: ' + gbk_file + ' ' + str(e))
 
     if os.path.exists(gbk_path):
         A_rec = SeqIO.read(gbk_path, "genbank")
@@ -567,7 +571,7 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
                                            label=True,
                                            name=gene_name[i] + gene_cov[i] + gene_id[i],
                                            label_position="middle",
-                                           label_size=14,
+                                           label_size=20,  # Increased from 14 - Tom Stanton 03.10.2022
                                            label_angle=20,
                                            label_strand=1)
                 i += 1
@@ -621,6 +625,11 @@ def draw_locus_image(reference_db, job_result_path, upload_path, job_uuid, seq_n
             for elem in svg.xpath('//*[attribute::transform]'):
                 if elem.attrib['transform'] == "scale(1,-1) translate(0,-100)":
                     elem.attrib['transform'] = "scale(1,-1) translate(0,-300)"
+
+            for elem in svg.xpath('//*[attribute::style]'):  # Removes the black lines and background
+                if not elem.text and 'path' in elem.tag:  # Tom Stanton 03.10.2022
+                    parent = elem.getparent()
+                    parent.remove(elem)
 
             svg = le.tostring(svg, pretty_print=True, encoding="utf-8")
             cairosvg.svg2png(svg, write_to=png_path)
