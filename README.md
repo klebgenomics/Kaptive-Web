@@ -27,6 +27,8 @@ If you use **Kaptive Web** in your research, please cite this paper alongside th
 If you use the command-line version of **Kaptive** ([download here](https://github.com/katholt/kaptive)), please cite this paper:
 [Identification of _Klebsiella_ capsule synthesis loci from whole genome data. doi: 10.1099/mgen.0.000102](http://mgen.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000102)
 
+**Kaptive Web** is hosted online at [kaptive-web.erc.monash.edu](https://kaptive-web.erc.monash.edu) - go there to use the web interface, this repository hosts the code used to run the site.
+
 
 
 ## Table of Contents
