@@ -43,6 +43,7 @@ If you use the command-line version of **Kaptive** ([download here](https://gith
   * [Broken assembly](https://github.com/kelwyres/Kaptive-Web#broken-assembly)
   * [Poor match - possible novel locus](https://github.com/kelwyres/Kaptive-Web#poor-match---possible-novel-locus)
   * [Poor match - possible novel variant](https://github.com/kelwyres/Kaptive-Web#poor-match---possible-novel-variant)
+* [Databases available](https://github.com/kelwyres/Kaptive-Web#databases-available-in-kaptive-web)
 * [FAQs](https://github.com/kelwyres/Kaptive-Web#faqs)
 * [Installation](https://github.com/kelwyres/Kaptive-Web#installation)
 * [License](https://github.com/kelwyres/Kaptive-Web#license)
