@@ -21,7 +21,9 @@ If **Kaptive** has lower confidence in the match it may mean that your assembly 
 
 If you do have an intact novel locus or novel variant and you would like it to be added to the database, [please let us know](https://github.com/kelwyres/Kaptive-Web/issues).
 
-If you use **Kaptive Web** in your research, please cite this paper alongside the appropriate [reference database citations](https://github.com/kelwyres/Kaptive-Web#citation):
+## Citation
+
+If you use **Kaptive Web** in your research, please cite this paper alongside the appropriate [reference database citations](https://github.com/kelwyres/Kaptive-Web#databases-available-in-kaptive-web):
 [Kaptive Web: user-friendly capsule and lipopolysaccharide serotype prediction for _Klebsiella_ genomes. doi: 10.1101/260125](https://www.biorxiv.org/content/early/2018/02/05/260125)
 
 If you use the command-line version of **Kaptive** ([download here](https://github.com/katholt/kaptive)), please cite this paper:
@@ -42,7 +44,6 @@ If you use the command-line version of **Kaptive** ([download here](https://gith
   * [Poor match - possible novel locus](https://github.com/kelwyres/Kaptive-Web#poor-match---possible-novel-locus)
   * [Poor match - possible novel variant](https://github.com/kelwyres/Kaptive-Web#poor-match---possible-novel-variant)
 * [FAQs](https://github.com/kelwyres/Kaptive-Web#faqs)
-* [Citation](https://github.com/kelwyres/Kaptive-Web#citation)
 * [Installation](https://github.com/kelwyres/Kaptive-Web#installation)
 * [License](https://github.com/kelwyres/Kaptive-Web#license)
  
@@ -128,9 +129,9 @@ In fact, 1753_ST258 is a deletion variant of KL107. Running **Kaptive** with the
 
 ## Databases available in Kaptive Web
 
-References for <i>Klebsiella pneumoniae</i> species complex and <i>Acinetobacter baumannii</i> are available in **Kaptive Web**. You can run the [command-line version of Kaptive](https://github.com/katholt/kaptive) with any appropriately formatted database of your own.
+References for <i>Klebsiella pneumoniae</i> species complex, <i>Acinetobacter baumannii</i> and <i>Vibrio parahaemolyticus</i> are available in **Kaptive Web**. You can run the [command-line version of Kaptive](https://github.com/katholt/kaptive) with any appropriately formatted database of your own.
 
-The databases were developed and curated by [Kelly Wyres](https://holtlab.net/kelly-wyres/) (_Klebsiella_) and [Johanna Kenyon](https://research.qut.edu.au/infectionandimmunity/projects/bacterial-polysaccharide-research/) (_A. baumannii_).
+The databases were developed and curated by [Kelly Wyres](https://holtlab.net/kelly-wyres/) (_Klebsiella_), [Johanna Kenyon](https://research.qut.edu.au/infectionandimmunity/projects/bacterial-polysaccharide-research/) (_A. baumannii_) and [Aldert Zomer](https://www.uu.nl/staff/ALZomer) (_V. parahaemolyticus_).
 
 If you have a locus database that you would like to be added to **Kaptive Web** for use by yourself and others in the community, please get in touch via the [issues page](https://github.com/katholt/Kaptive/issues) or [email](mailto:kaptive.typing@gmail.com) . Similarly, if you have identified new locus variants not currently in the existing databases, let us know!  
 
@@ -195,6 +196,12 @@ WARNING: These databases have been developed and tested specifically for _A. bau
 Lists of papers describing each of the individual _A. baumannii_ reference loci can be found [here](https://github.com/katholt/Kaptive/tree/master/extras).
 Likewise, you can read more about the _Acinetobacter baunannii_ K and OC locus databases on the [Kaptive wiki!](https://github.com/katholt/Kaptive/wiki/Databases-distributed-with-Kaptive#acinetobacter-baunannii-k-and-oc-locus-databases)
 
+
+#### _Vibrio parahaemolyticus_ K and locus databases 
+
+This is a third-party database developed and maintainted by [Aldert Zomer](https://www.uu.nl/staff/ALZomer).
+
+The databases are housed in [this repository](https://github.com/aldertzomer/vibrio_parahaemolyticus_genomoserotyping) and described in [this preprint](https://www.biorxiv.org/content/10.1101/2021.07.06.451262v2).
 
 
 ## FAQs
