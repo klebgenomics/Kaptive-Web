@@ -24,7 +24,7 @@
                         <li><a href="{{=URL('jobs')}}" accesskey="1" title="">Submit Job</a></li>
                         <li><a href="{{=URL('result')}}" accesskey="2" title="">Get Result</a></li>
                         <li><a href="#welcome" accesskey="3" title="">About Kaptive</a></li>
-                        <li><a href="https://github.com/kelwyres/Kaptive-Web/blob/master/README.md" accesskey="4" title="">Documentation</a></li>
+                        <li><a href="https://kaptive.readthedocs.io/en/latest/" accesskey="4" title="" target=”_blank”>Documentation</a></li>
                         <li><a href="#contact us" accesskey="5" title="">Contact Us</a></li>
                     </ul>
                 </div>
@@ -36,13 +36,33 @@
                 <div class="title" id="about">
                     <h2>About Kaptive</h2>
                 </div>
-                <p style="font-size:25px"><strong>Kaptive</strong> is a tool for bacterial surface polysaccharide locus typing and variant evaluation. It takes one or more pre-assembled genomes and for each finds the best matching locus from a reference database. References for <i>Klebsiella pneumoniae</i> species complex, <i>Acinetobacter baumannii</i> and <i>Vibrio parahaemolyticus</i> are available in Kaptive's web interface.</p>
+                <p style="font-size:25px"><strong>Kaptive</strong> is a tool for bacterial <i>in silico</i> serotyping.
+                    It takes one or more pre-assembled genomes and for each finds the best matching locus from a
+                    reference database. References for <i>Klebsiella pneumoniae</i> species complex,
+                    <i>Acinetobacter baumannii</i> and <i>Vibrio parahaemolyticus</i> are available in Kaptive's web
+                    interface.</p>
                 <p></p>
-                <p style="font-size:25px">The <strong>reference databases</strong> are curated by <a href="https://research.monash.edu/en/persons/kelly-wyres" rel="nofollow">Kelly Wyres</a> (Monash University, Australia) and <a href="https://research.qut.edu.au/infectionandimmunity/projects/bacterial-polysaccharide-research/" rel="nofollow">Johanna Kenyon</a> (Queensland University of Technology, Australia). Please <a href="mailto:kaptive.typing@gmail.com">contact us</a> if you have an intact novel locus that you would like to be included.</p>
+                <p style="font-size:25px">The <strong>reference databases</strong> are curated by
+                    <a href="https://research.monash.edu/en/persons/kelly-wyres" rel="nofollow">Kelly Wyres</a>
+                    (Monash University, Australia) and
+                    <a href="https://research.qut.edu.au/infectionandimmunity/projects/bacterial-polysaccharide-research/" rel="nofollow"> Johanna Kenyon</a>
+                    (Queensland University of Technology, Australia). Please <a href="mailto:kaptive.typing@gmail.com">contact us</a>
+                    if you have an intact novel locus that you would like to be included.</p>
                 <p></p>
                 <p style="font-size:25px">The third-party database for <i>Vibrio parahaemolyticus</i> is maintained by <a href="https://github.com/aldertzomer/vibrio_parahaemolyticus_genomoserotyping"rel="nofollow">Aldert Zomer</a>.</p>
                 <p></p>
-                <p style="font-size:25px">The current versions (as at 14 November 2022) are: <strong>Kaptive Web v1.2.0 and Kaptive v2.0.4</strong>. The individual database versions are shown in the citations section.</p>
+                {{
+                    import urllib.request
+                    import json
+                    r = urllib.request.urlopen('https://api.github.com/repos/klebgenomics/kaptive/releases/latest')
+                    k_version = json.loads(r.read()).get('name', 'unknown')
+                    r = urllib.request.urlopen('https://api.github.com/repos/klebgenomics/kaptive-web/releases/latest')
+                    kw_version = json.loads(r.read()).get('name', 'unknown')
+                }}
+                <p style="font-size:25px">The current versions are:
+                    <strong>Kaptive Web {{=kw_version}}</strong> and <strong>Kaptive {{=k_version}}</strong>.
+                    The individual database versions are shown in the citations section.
+                </p>
             </div>
         </div>
         <div id="wrapper3">
@@ -90,13 +110,13 @@
                     </tr>
                     <tr>
                         <td style="vertical-align: top; padding:0 15px 0 15px;"><p><strong>Kaptive</strong> is an open source project for the biomedical community, licensed under GNU General Public License version 3.</p></td>
-                        <td style="vertical-align: top; padding:0 15px 0 15px;"><p><strong>Kaptive</strong> is developed and maintained by Kelly Wyres, Ryan Wick, Tom Stanton and Kathryn Holt at the Holt Lab, Monash University.</p></td>
+                        <td style="vertical-align: top; padding:0 15px 0 15px;"><p><strong>Kaptive</strong> is developed and maintained by Tom Stanton and Kelly Wyres at the Wyres Lab, Monash University.</p></td>
                         <td style="vertical-align: top; padding:0 15px 0 15px;"><p>The command line version of Kaptive can be deployed on your computer with <i>Klebsiella</i> or <i> A. baumannii</i> K-locus, O/OC-locus or other databases.</p></td>
                     </tr>
                     <tr>
                         <td style="padding:0 15px 0 15px;"><a href="/kaptive/default/jobs" class="button button-small">Submit job</a></td>
-                        <td style="padding:0 15px 0 15px;"><a href="https://holtlab.net/" class="button button-small">Visit Holt lab</a></td>
-                        <td style="padding:0 15px 0 15px;"><a href="https://github.com/katholt/Kaptive" class="button button-small">Visit GitHub</a></td>
+                        <td style="padding:0 15px 0 15px;"><a href="https://wyreslab.com/" class="button button-small">Visit Wyres lab</a></td>
+                        <td style="padding:0 15px 0 15px;"><a href="https://github.com/klebgenomics/Kaptive" class="button button-small">Visit GitHub</a></td>
                     </tr>
                 </table>
             </div>
@@ -106,9 +126,9 @@
         <div class="title" id="contact us">
             <h2>Get in touch</h2>
             <ul class="contact">
-                <li><a href="https://github.com/katholt/Kaptive" class="fa fa-github fa-2x"><span>GitHub</span></a></li>
-                <li><a href="https://github.com/katholt/Kaptive/issues" class="fa fa-bug fa-2x"><span>Bug</span></a></li>
-                <li><a href="https://twitter.com/rrwick" class="fa fa-twitter fa-2x"><span>Twitter</span></a></li>
+                <li><a href="https://github.com/klebgenomics/Kaptive" class="fa fa-github fa-2x"><span>GitHub</span></a></li>
+                <li><a href="https://github.com/klebgenomics/Kaptive/issues" class="fa fa-bug fa-2x"><span>Bug</span></a></li>
+                <li><a href="https://twitter.com/tomstantonmicro" class="fa fa-twitter fa-2x"><span>Twitter</span></a></li>
                 <li><a href="mailto:kaptive.typing@gmail.com" class="fa fa-envelope fa-2x"><span>Email</span></a></li>
             </ul>
         </div>
