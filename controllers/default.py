@@ -46,6 +46,7 @@ def index():
 
 
 def jobs():
+    import re
     import uuid
 
     if request.vars.message is not None:
@@ -91,9 +92,17 @@ def jobs():
         fastalist = [f for f in os.listdir(os.path.join(upload_path, session.uuid))
                      if os.path.isfile(os.path.join(upload_path, session.uuid, f))]
         fastafiles = []
+
+        allowed_characters = ' a-zA-Z0-9_.-'
+        fastafiles_invalid = []
+
         no_of_fastas = 0
         for f in fastalist:
             if is_file_fasta(os.path.join(upload_path, session.uuid, f)):
+
+                # Validate inputs
+                if re.search(fr'[^{allowed_characters}]', f):
+                    fastafiles_invalid.append(f)
 
                 # Spaces and hashes cause problems, so rename files to be spaceless and hashless, if needed.
                 if ' ' in f:
@@ -117,6 +126,11 @@ def jobs():
         if no_of_fastas == 0:
             logger.error(f'[{session.uuid}] No fasta file found in uploaded file.')
             redirect(URL(r=request, f='jobs', vars=dict(message=T("No fasta file was found in the uploaded file."))))
+        if fastafiles_invalid:
+            fastafiles_invalid_str = ', '.join(fastafiles_invalid)
+            error_msg = f'Input file contains invalid characters: {fastafiles_invalid_str}. Please include only {allowed_characters}'
+            logger.error(f'[{session.uuid}] {error_msg}')
+            redirect(URL(r=request, f='jobs', vars=dict(message=T(error_msg))))
 
         logger.debug(f'[{session.uuid}] Selected reference database: ' + request.vars.reference)
 
