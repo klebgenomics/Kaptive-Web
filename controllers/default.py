@@ -6,6 +6,7 @@ import threading
 import time
 from collections import OrderedDict
 from datetime import datetime
+from pathlib import Path
 
 queue_lock = threading.Lock()
 job_list_lock = threading.Lock()
@@ -14,7 +15,7 @@ job_table_lock = threading.Lock()
 
 # Read config file
 Config = configparser.ConfigParser()
-Config.read('applications/kaptive/settings.ini')
+Config.read('applications/kaptive_web/settings.ini')
 base_path = Config.get('Path', 'base_path')
 reference_database_path = Config.get('Path', 'reference_database_path')
 upload_path = Config.get('Path', 'upload_path')
@@ -27,15 +28,17 @@ captcha = Config.getboolean('Security', 'captcha')
 job_queue_path = os.path.join(queue_path, 'queue')
 
 # Setup logger
-logger = logging.getLogger("kaptive")
+logger = logging.getLogger('kaptive_web')  # Setup a new logger
+logger.propagate = False  # Prevents multi printing, see: https://stackoverflow.com/questions/6729268/log-messages-appearing-twice-with-python-logging
 logger.setLevel(logging.DEBUG)
-
-# Get number of tblastn or blastn running (for debug purpose only)
-procs = subprocess.check_output(['ps', 'uaxw']).decode('utf-8').splitlines()
-blast_procs = [proc for proc in procs if 'blast' in proc]
-blast_count = len(blast_procs)
-if blast_count > 0:
-    logger.debug(' Blast found: ' + str(blast_count))
+if not logger.handlers:  # Prevents multi printing, see: https://stackoverflow.com/questions/6729268/log-messages-appearing-twice-with-python-logging
+    logger.addHandler(handler := logging.StreamHandler())
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(levelname)s [%(filename)s.%(funcName)s:%(lineno)d] %(message)s",
+            "%Y-%m-%d %H:%M:%S"
+        )
+    )
 
 
 def index():
@@ -43,9 +46,8 @@ def index():
 
 
 def jobs():
-    import uuid
-    import fnmatch
     import re
+    import uuid
 
     if request.vars.message is not None:
         response.flash = request.vars.message
@@ -53,33 +55,10 @@ def jobs():
     # Generate an UUID for each job submission
     session.uuid = str(uuid.uuid4())
 
-    # -------------------------------------------------------------------------
-    # Get a list of reference database files, order by file name but with all
-    # Klebsiella databases listed first.
-    #  - Copy the database files to this folder.
-    #  - Name the first one (default) 1-xxxx, second one 2-xxxx, so on so forth.
-    # -------------------------------------------------------------------------
-    filelist_klebsiella = dict()
-    filelist_other = dict()
-    logger.debug(f'[{session.uuid}] Reference database file found:')
-    for f in sorted(os.listdir(reference_database_path)):
-        if os.path.isfile(os.path.join(reference_database_path, f)) and fnmatch.fnmatch(f, '*.gbk'):
-            fname = re.sub('\.gbk$', '', f)
-            fname = re.sub('_', ' ', fname)
-            fname = re.sub('\d-', '', fname)
-            fname = fname.replace(' k ', ' K ').replace(' o ', ' O ')
-            logger.debug(f'[{session.uuid}] Database Name: ' + f)
-            if 'klebsiella' in fname.lower():
-                filelist_klebsiella[f] = fname
-            else:
-                filelist_other[f] = fname
-    # Create sorted list of tuples with all Klebsiella databases preceeding databases of other genus
-    filelist_klebsiella_sorted = sorted(filelist_klebsiella.items(), key=lambda k: k[0])
-    filelist_other_sorted = sorted(filelist_other.items(), key=lambda k: k[0])
-    filelist_sorted = filelist_klebsiella_sorted + filelist_other_sorted
-    # Merge filelist dicts as this is used below and later
-    filelist = filelist_klebsiella.copy()
-    filelist.update(filelist_other)
+    filelist = {
+        str(i): i.stem.replace('_', ' ') for i in Path(reference_database_path).glob('*.gbk')
+    }
+
     if len(filelist) == 0:
         logger.error(f'[{session.uuid}] No reference database file found.')
         response.flash = 'Internal error. No reference database file found. Please contact us.'
@@ -87,7 +66,7 @@ def jobs():
     # Create the form
     fields = [Field('job_name', label=T('Job name (optional)')),
               Field('assembly','upload', requires=[IS_NOT_EMPTY()], label=T('Assembly file*'), custom_store=upload_file),
-              Field('reference', requires=IS_IN_SET(filelist_sorted, zero=None), label=T('Reference database'))
+              Field('reference', requires=IS_IN_SET(filelist, zero=None), label=T('Reference database'))
               ]
     if captcha:
         fields.append(captcha_field()) # Google reCaptcha v2
@@ -104,18 +83,26 @@ def jobs():
         compression = get_compression_type(file_path)
         if compression == 'zip':
             process_zip_file(file_dir, file_path)
-            logger.debug(f'[{session.uuid}] Zip file uploaded: ' + request.vars.assembly.filename)
+            logger.debug(f'[{session.uuid}] Zip file uploaded: {request.vars.assembly.filename}')
         elif compression == 'gz':
             process_gz_file(file_dir, request.vars.assembly.filename)
-            logger.debug(f'[{session.uuid}] GZip file uploaded: ' + request.vars.assembly.filename)
+            logger.debug(f'[{session.uuid}] GZip file uploaded: {request.vars.assembly.filename}')
 
         # Get a list of fasta files
         fastalist = [f for f in os.listdir(os.path.join(upload_path, session.uuid))
                      if os.path.isfile(os.path.join(upload_path, session.uuid, f))]
         fastafiles = []
+
+        allowed_characters = ' a-zA-Z0-9_.-'
+        fastafiles_invalid = []
+
         no_of_fastas = 0
         for f in fastalist:
             if is_file_fasta(os.path.join(upload_path, session.uuid, f)):
+
+                # Validate inputs
+                if re.search(fr'[^{allowed_characters}]', f):
+                    fastafiles_invalid.append(f)
 
                 # Spaces and hashes cause problems, so rename files to be spaceless and hashless, if needed.
                 if ' ' in f:
@@ -139,18 +126,22 @@ def jobs():
         if no_of_fastas == 0:
             logger.error(f'[{session.uuid}] No fasta file found in uploaded file.')
             redirect(URL(r=request, f='jobs', vars=dict(message=T("No fasta file was found in the uploaded file."))))
-        fastafiles_string = ', '.join(fastafiles)
+        if fastafiles_invalid:
+            fastafiles_invalid_str = ', '.join(fastafiles_invalid)
+            error_msg = f'Input file contains invalid characters: {fastafiles_invalid_str}. Please include only {allowed_characters}'
+            logger.error(f'[{session.uuid}] {error_msg}')
+            redirect(URL(r=request, f='jobs', vars=dict(message=T(error_msg))))
+
         logger.debug(f'[{session.uuid}] Selected reference database: ' + request.vars.reference)
 
         # Save job details to a JSON file
-        build_meta_json(session.uuid, request.vars.job_name, fastafiles_string, no_of_fastas,
-                        filelist.get(request.vars.reference, None), submit_time)
+        build_meta_json(session.uuid, request.vars.job_name, fastafiles, filelist[request.vars.reference], submit_time)
 
         # Create empty result file
-        create_table_file(request.vars.reference)
+        create_table_file()
 
         # Build job list
-        build_job_dict(session.uuid, request.vars.reference, submit_time, fastafiles, no_of_fastas, upload_path)
+        build_job_dict(session.uuid, request.vars.reference, submit_time, fastafiles, upload_path)
 
         # Add job to job queue
         add_job_to_queue(job_queue_path, session.uuid, no_of_fastas)
@@ -205,7 +196,7 @@ def confirmation():
 
     if os.path.exists(result_json_path) and (succeeded_jobs + failed_jobs == total_jobs):  # If job finished
         content = ''
-        result_data = read_json_from_file(result_json_path)
+        result_data = read_json_from_file(result_json_path, json_lines=True)
         result_status = 1
     elif pending_jobs == 0 and running_jobs == 0:
         content = ''
@@ -217,11 +208,11 @@ def confirmation():
                 logger.debug(f'[{session.uuid}] No available worker. Job is in the queue.')
                 result_status = 2
             else:
-                content = 'Processing your job, it usually takes ~1 minute for each assembly file to complete. ' \
+                content = 'Processing your job, it usually takes < a few seconds for each assembly file to complete. ' \
                           'This page will refresh every ' + str(refresh_time / 1000) + \
                           ' seconds until the process is completed. Please do not close this page or start a new job.'
                 if os.path.exists(result_json_path):
-                    result_data = read_json_from_file(result_json_path)
+                    result_data = read_json_from_file(result_json_path, json_lines=True)
                 else:
                     logger.debug(f'[{session.uuid}] Cannot find final result JSON file.')
                 result_status = 2
@@ -296,16 +287,16 @@ def download():
 @cache.action()
 def get_svg():
     uuid = request.args(0)
-    assemble_name = request.args(1)
-    path = os.path.join(upload_path, uuid, 'locus_image', assemble_name + '.svg')
+    assembly_name = request.args(1)
+    path = os.path.join(upload_path, uuid, 'locus_image', assembly_name + '.svg')
     return response.stream(path)
 
 
 @cache.action()
 def get_png():
     uuid = request.args(0)
-    assemble_name = request.args(1)
-    path = os.path.join(upload_path, uuid, 'locus_image', assemble_name + '.png')
+    assembly_name = request.args(1)
+    path = os.path.join(upload_path, uuid, 'locus_image', assembly_name + '.png')
     if os.path.exists(path):
         return response.stream(path)
     else:
