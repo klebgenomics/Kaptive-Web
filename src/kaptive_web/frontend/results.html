@@ -1,10 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Kaptive Web - Results</title>
+    <style>
+        /* Kaptive Color Scheme & Modern Resets */
+        body { font-family: Arial, sans-serif; color: #333; }
+        .kaptive-purple { color: #6c2b6a; }
+        .bg-typeable { background-color: #d9b8d7; }
+        .bg-untypeable { background-color: #D9C3D9; }
+        .bg-header { background-color: #E5E8E8; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { font-weight: bold; }
+
+        /* Tab Navigation */
+        .tab-buttons { margin-top: 30px; display: flex; border-bottom: 2px solid #6c2b6a; }
+        .tab-btn {
+            padding: 10px 20px; border: none; background: #eee; cursor: pointer;
+            font-size: 16px; margin-right: 5px; border-radius: 5px 5px 0 0;
+        }
+        .tab-btn.active { background: #6c2b6a; color: white; }
+        .tab-content { display: none; padding-top: 20px; }
+        .tab-content.active { display: block; }
+
+        /* Diagram Modal */
+        dialog {
+            width: 80%; max-width: 900px; border: 2px solid #6c2b6a; border-radius: 8px;
+            padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+        .close-btn { float: right; cursor: pointer; color: #6c2b6a; font-weight: bold; }
+    </style>
 </head>
 <body>
-$END$
+
+    <h2 class="kaptive-purple">Job Overview</h2>
+    <table>
+        <tbody id="summary-table">
+            <tr><td><strong>Token</strong></td><td id="ui-token">Loading...</td></tr>
+            <tr><td><strong>Status</strong></td><td id="ui-status">Polling API...</td></tr>
+        </tbody>
+    </table>
+
+    <div id="tabs-container" style="display: none;">
+        <div class="tab-buttons" id="tab-headers"></div>
+        <div id="tab-bodies"></div>
+    </div>
+
+    <dialog id="diagram-modal">
+        <span class="close-btn" id="close-modal">✖ Close</span>
+        <h3 class="kaptive-purple" id="modal-title">Gene Diagram</h3>
+        <div id="modal-content" style="text-align: center; margin-top: 20px;">
+            </div>
+    </dialog>
+
+    <script src="results.js"></script>
 </body>
 </html>
