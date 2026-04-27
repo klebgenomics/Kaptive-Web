@@ -1,39 +1,74 @@
-site_name: "Kaptive-Web 🦠🧬💻"
-site_url: https://tomdstanton.github.io/Kaptive-Web
-repo_url: https://github.com/tomdstanton/Kaptive-Web
-site_description: "Lightweight Python Library for Bacterial Genomics"
-repo_name: "tomdstanton/Kaptive-Web"
-watch: [mkdocs.yml, README.md, src]
+site_name = "Kaptive Web"
+site_description = "Web interface for Kaptive, the tool for in silico serotyping."
+site_url = "https://tomdstanton.github.io/Kaptive-Web/"
+repo_url = "https://github.com/tomdstanton/Kaptive-Web"
+repo_name = "tomdstanton/Kaptive-Web"
+site_author = "Tom Stanton"
 
-nav:
-  - Home: index.md
+nav = [
+    { "Home" = "index.md" },
+]
 
-theme:
-  name: "material"
-  icon:
-    logo: 'material/virus'
-  homepage: https://tomdstanton.github.io/Kaptive-Web
-  palette:
-    scheme: kaptive
-  features:
-    - toc.follow
-    - content.action.edit
+extra_javascript = [
+    "javascripts/mathjax.js",
+    "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+]
 
-extra_css:
-  - stylesheets/extra.css
+[theme]
+name = "material"
+icon = { repo = "fontawesome/brands/github" }
+features = [
+    "navigation.tabs",
+    "navigation.sections",
+    "navigation.expand",
+    "navigation.top",          # Added: Back-to-top button
+    "toc.integrate",           # Added: Merges TOC into the left sidebar
+    "search.suggest",          # Added: Smarter search
+    "search.highlight",        # Added: Highlights search terms
+    "content.code.copy"
+]
 
-markdown_extensions:
-  - admonition
+# Light Mode (Default)
+[[theme.palette]]
+scheme = "default"
+primary = "indigo"
+accent = "deep purple"
+[theme.palette.toggle]
+icon = "material/brightness-7"
+name = "Switch to dark mode"
 
-plugins:
-  - search
-  - termynal
-  - mkdocstrings:
-      handlers:
-        python:
-          options:
-            docstring_style: "google"
-  - api-autonav:
-      modules: ['src/kaptive-web']
-      nav_section_title: "API Reference"
-  - include-markdown
+# Dark Mode (Slate)
+[[theme.palette]]
+scheme = "slate"
+primary = "indigo"
+accent = "deep purple"
+[theme.palette.toggle]
+icon = "material/brightness-4"
+name = "Switch to light mode"
+
+[theme.font]
+text = "Roboto"
+code = "JetBrains Mono"
+
+[markdown_extensions]
+admonition = {}
+"pymdownx.details" = {}
+"pymdownx.superfences" = {}
+"pymdownx.tabbed" = { alternate_style = true }
+"pymdownx.highlight" = { anchor_linenums = true, use_pygments = true }
+"pymdownx.inlinehilite" = {}
+"pymdownx.arithmatex" = { generic = true }
+
+[plugins]
+search = {}
+
+[plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+
+# Added: Global styling for the auto-generated API docs
+[plugins.mkdocstrings.handlers.python.options]
+show_root_heading = true
+show_source = true
+heading_level = 2
+show_signature_annotations = true
+separate_signature = true
