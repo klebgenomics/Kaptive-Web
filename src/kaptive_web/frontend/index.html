@@ -3,91 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaptive Web</title>
+    <title>Kaptive Web - Modern Sequencing Typing</title>
+    <!-- Bulma 0.9.4 CSS -->
     <!-- Bulma 0.9.4 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round&display=swap" rel="stylesheet">
     <!-- FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="has-background-light" style="min-height: 100vh;">
+<body>
     <!-- Navigation Bar -->
     <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <a class="navbar-item has-text-weight-bold is-size-4" href="#">
-                Kaptive Web
+                <img src="logo.png" alt="Kaptive" style="max-height: 2rem;">
             </a>
+        </div>
+        <div class="navbar-menu is-active">
+            <div class="navbar-end pr-4" style="display: flex; align-items: center;">
+                <div id="metadata-badge" class="kaptive-badge is-hidden">
+                    <span class="icon is-small mr-1"><i class="fas fa-info-circle"></i></span>
+                    <span id="kaptive-version">Loading...</span>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <section class="section">
+    <!-- Hero Section -->
+    <section class="hero is-small is-primary is-bold">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <img src="logo.png" alt="Kaptive Logo" style="max-height: 100px; margin-bottom: 1rem;">
+                <p class="subtitle is-5 has-text-white" style="opacity: 0.9;">
+                    Fast and accurate surface polysaccharide loci reporting for Klebsiella and Acinetobacter.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section pt-5">
         <div class="container">
             <div class="columns">
                 <!-- Left Column: Form -->
                 <div class="column is-one-third">
                     <form id="job-form">
-                        <div class="box">
-                            <h3 class="title is-4">1. Upload FASTA</h3>
-                            <div id="drop-zone" class="file is-boxed is-centered has-text-centered p-5 drop-zone" style="border: 2px dashed #dbdbdb; border-radius: 6px; cursor: pointer;">
+                        <div class="box glass-card mb-5">
+                            <h3 class="title is-5 mb-4">
+                                <span class="icon has-text-primary mr-2"><i class="fas fa-file-upload"></i></span>
+                                1. Upload FASTA
+                            </h3>
+                            <div id="drop-zone" class="file is-boxed is-centered has-text-centered p-5 drop-zone">
                                 <div class="content">
-                                    <span class="icon is-large has-text-grey-light">
-                                        <i class="fas fa-upload fa-3x"></i>
+                                    <span class="icon is-large has-text-grey-light mb-2">
+                                        <i class="fas fa-cloud-upload-alt fa-3x"></i>
                                     </span>
-                                    <p class="mt-3 mb-1 has-text-weight-semibold">Drag and drop your FASTA assemblies here</p>
+                                    <p class="mt-2 mb-1 has-text-weight-semibold">Drag and drop your assemblies here</p>
                                     <p class="is-size-7 has-text-grey">or click to browse (.fasta, .fas, .fna, .fa)</p>
                                     <input type="file" id="file-input" multiple accept=".fasta,.fas,.fna,.fa" style="display: none;">
                                 </div>
                             </div>
-                            <div id="file-list-container" class="mt-3 is-hidden">
-                                <p class="has-text-weight-bold is-size-7 mb-2">Queued Files:</p>
-                                <ul id="file-list" class="is-size-7 ml-3" style="list-style-type: disc;"></ul>
+                            <div id="file-list-container" class="mt-4 p-3 has-background-white-ter is-hidden" style="border-radius: 8px; border: 1px solid #eee;">
+                                <p class="has-text-weight-bold is-size-7 mb-2 text-muted">Queued Files:</p>
+                                <ul id="file-list" class="is-size-7 ml-3" style="list-style-type: none; padding-left: 0;"></ul>
                             </div>
                         </div>
 
-                        <div class="box">
-                            <h3 class="title is-4">2. Parameters</h3>
-                            <div class="field">
-                                <label class="label">Reference Database</label>
+                        <div class="box glass-card mb-5">
+                            <h3 class="title is-5 mb-4">
+                                <span class="icon has-text-primary mr-2"><i class="fas fa-sliders-h"></i></span>
+                                2. Parameters
+                            </h3>
+                            <div class="field mb-4">
+                                <label class="label is-small">
+                                    <span data-tooltip="Select the target reference database for typing">Reference Database</span>
+                                </label>
                                 <div class="control is-expanded">
                                     <div class="select is-fullwidth">
                                         <select id="species-select" name="species">
-                                            <option value="Klebsiella pneumoniae">Klebsiella pneumoniae</option>
-                                            <option value="Acinetobacter baumannii">Acinetobacter baumannii</option>
+                                            <option value="Klebsiella pneumoniae">Klebsiella pneumoniae (K & O Loci)</option>
+                                            <option value="Acinetobacter baumannii">Acinetobacter baumannii (K & OC Loci)</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
-                            <details class="mt-4">
-                                <summary class="has-text-weight-semibold" style="cursor: pointer;">Advanced Settings</summary>
-                                <div class="content mt-3 p-3 has-background-white-ter" style="border-radius: 4px;">
-                                    <div class="field">
-                                        <label class="label is-small">Minimum Coverage</label>
-                                        <div class="control">
-                                            <input class="input is-small" type="number" step="0.01" id="min-cov" name="min_cov" value="0.90">
+                            <details class="mt-2">
+                                <summary class="has-text-weight-semibold is-size-6" style="cursor: pointer;">Advanced Settings</summary>
+                                <div class="content mt-3 p-4" style="background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                                    
+                                    <div class="field mb-4">
+                                        <label class="label is-small is-flex is-justify-content-space-between align-items-center">
+                                            <span data-tooltip="Minimum coverage required to call a gene presence">Minimum Coverage</span>
+                                            <span class="slider-value" id="min-cov-val">0.90</span>
+                                        </label>
+                                        <div class="control slider-container">
+                                            <input type="range" id="min-cov" name="min_cov" min="0" max="1" step="0.01" value="0.90">
                                         </div>
                                     </div>
-                                    <div class="field">
-                                        <label class="label is-small">Percent Expected</label>
-                                        <div class="control">
-                                            <input class="input is-small" type="number" step="0.01" id="percent-expected" name="percent_expected" value="1.00">
+
+                                    <div class="field mb-4">
+                                        <label class="label is-small is-flex is-justify-content-space-between align-items-center">
+                                            <span data-tooltip="Expected percentage of loci genes required">Percent Expected</span>
+                                            <span class="slider-value" id="percent-expected-val">1.00</span>
+                                        </label>
+                                        <div class="control slider-container">
+                                            <input type="range" id="percent-expected" name="percent_expected" min="0" max="1" step="0.01" value="1.00">
                                         </div>
                                     </div>
+
                                     <div class="field">
-                                        <label class="label is-small">Max Other Genes</label>
-                                        <div class="control">
-                                            <input class="input is-small" type="number" step="1" id="max-other-genes" name="max_other_genes" value="0">
+                                        <label class="label is-small is-flex is-justify-content-space-between align-items-center">
+                                            <span data-tooltip="Maximum allowed unexpected genes in the locus">Max Other Genes</span>
+                                            <span class="slider-value" id="max-other-genes-val">0</span>
+                                        </label>
+                                        <div class="control slider-container">
+                                            <input type="range" id="max-other-genes" name="max_other_genes" min="0" max="10" step="1" value="0">
                                         </div>
                                     </div>
+
                                 </div>
                             </details>
                         </div>
 
-                        <div class="field mt-5">
+                        <div class="field mt-4">
                             <div class="control">
-                                <button type="submit" id="submit-btn" class="button is-primary is-fullwidth is-medium" disabled>
+                                <button type="submit" id="submit-btn" class="button is-primary is-fullwidth is-medium has-text-weight-semibold" disabled>
                                     <span class="icon"><i class="fas fa-play"></i></span>
-                                    <span>Submit Job</span>
+                                    <span>Run Typing Pipeline</span>
                                 </button>
                             </div>
                         </div>
@@ -96,23 +140,37 @@
 
                 <!-- Right Column: Results -->
                 <div class="column is-two-thirds">
-                    <div class="box" style="height: 100%;">
-                        <h3 class="title is-4">Results</h3>
+                    <div class="box glass-card" style="height: 100%; min-height: 500px; display: flex; flex-direction: column;">
+                        <div class="is-flex is-justify-content-space-between is-align-items-center mb-4">
+                            <h3 class="title is-4 mb-0">
+                                <span class="icon has-text-info mr-2"><i class="fas fa-poll"></i></span>
+                                Results
+                            </h3>
+                            <button id="refresh-btn" class="button is-small is-light is-hidden">
+                                <span class="icon"><i class="fas fa-sync-alt"></i></span>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
                         
-                        <div id="status-container" class="notification is-info is-light is-hidden">
-                            <span class="icon"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span id="status-text" class="ml-2">Processing...</span>
+                        <div id="status-container" class="notification is-info is-light is-hidden" style="border-radius: 8px;">
+                            <div class="is-flex is-align-items-center">
+                                <span class="icon is-large mr-2"><i class="fas fa-circle-notch fa-spin fa-2x"></i></span>
+                                <div>
+                                    <h4 class="has-text-weight-bold is-size-5" id="status-title">Processing Job...</h4>
+                                    <p id="status-text" class="is-size-7">Running bioinformatics pipeline, please wait.</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div id="results-table-container" class="table-container is-hidden">
-                            <table class="table is-striped is-hoverable is-fullwidth">
+                        <div id="results-table-container" class="table-container is-hidden flex-grow-1" style="overflow-y: auto;">
+                            <table class="table is-hoverable is-fullwidth" style="background: transparent;">
                                 <thead>
                                     <tr>
-                                        <th>Assembly</th>
-                                        <th>Match</th>
-                                        <th>Coverage</th>
-                                        <th>Confidence</th>
-                                        <th>Action</th>
+                                        <th class="has-text-grey-dark"><span data-tooltip="Name of the input sequence file">Assembly</span></th>
+                                        <th class="has-text-grey-dark"><span data-tooltip="Best matched locus in database">Match</span></th>
+                                        <th class="has-text-grey-dark"><span data-tooltip="Coverage of the matched locus">Coverage</span></th>
+                                        <th class="has-text-grey-dark"><span data-tooltip="Overall confidence of the call">Confidence</span></th>
+                                        <th class="has-text-grey-dark">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="results-tbody">
@@ -121,9 +179,10 @@
                             </table>
                         </div>
 
-                        <div id="no-results" class="has-text-centered py-6 has-text-grey">
-                            <span class="icon is-large mb-3"><i class="fas fa-microscope fa-3x"></i></span>
-                            <p>Submit a job to see results here.</p>
+                        <div id="no-results" class="has-text-centered my-auto py-6 has-text-grey-light">
+                            <span class="icon is-large mb-4" style="opacity: 0.5;"><i class="fas fa-flask fa-4x"></i></span>
+                            <p class="is-size-5 has-text-weight-medium">Ready to Analyze</p>
+                            <p class="is-size-6 mt-2">Submit a job on the left to view typed loci results here.</p>
                         </div>
                     </div>
                 </div>
@@ -131,19 +190,34 @@
         </div>
     </section>
 
+    <!-- Footer for Author info -->
+    <footer class="footer pb-5 pt-5 has-background-light" style="margin-top: auto; border-top: 1px solid #eaeaea;">
+        <div class="content has-text-centered is-size-7 has-text-grey">
+            <p>
+                <strong>Kaptive</strong> <span id="footer-authors"></span>
+            </p>
+        </div>
+    </footer>
+
     <!-- Modal for SVG Diagram -->
     <div id="svg-modal" class="modal">
-        <div class="modal-background"></div>
-        <div class="modal-card" style="width: 90%; max-width: 1200px;">
-            <header class="modal-card-head">
-                <p class="modal-card-title">Gene Diagram</p>
+        <div class="modal-background" style="background-color: rgba(10, 10, 10, 0.7); backdrop-filter: blur(4px);"></div>
+        <div class="modal-card" style="width: 90%; max-width: 1200px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            <header class="modal-card-head" style="background: #fcfcfc; border-bottom: 1px solid #eee;">
+                <p class="modal-card-title has-text-weight-bold">
+                    <span class="icon has-text-primary mr-2"><i class="fas fa-project-diagram"></i></span>
+                    Gene Diagram
+                </p>
                 <button class="delete close-modal" aria-label="close"></button>
             </header>
-            <section class="modal-card-body has-text-centered" id="svg-modal-body">
+            <section class="modal-card-body has-text-centered has-background-white" id="svg-modal-body">
+                <div class="is-flex is-justify-content-center is-align-items-center" style="min-height: 200px;" id="svg-loader">
+                    <span class="icon is-large has-text-primary"><i class="fas fa-spinner fa-pulse fa-3x"></i></span>
+                </div>
                 <!-- SVG injected here -->
             </section>
-            <footer class="modal-card-foot is-justify-content-flex-end">
-                <button class="button close-modal">Close</button>
+            <footer class="modal-card-foot is-justify-content-flex-end" style="background: #fcfcfc; border-top: 1px solid #eee;">
+                <button class="button close-modal">Close Diagram</button>
             </footer>
         </div>
     </div>

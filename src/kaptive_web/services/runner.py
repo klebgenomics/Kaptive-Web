@@ -5,8 +5,7 @@ import logging
 from typing import Dict, List, Any
 
 from kaptive_web.models.database import Job
-from kaptive.assembly import Assembly
-from kaptive.typing import typing_pipeline
+from kaptive.assembly import Assembly, typing_pipeline
 
 from kaptive_web.services.cache import KaptiveDatabaseCache
 

@@ -2,6 +2,7 @@ import os
 import uuid
 import shutil
 import json
+import importlib.metadata
 from typing import List
 
 from fastapi import APIRouter, UploadFile, File, Form, BackgroundTasks, Depends, HTTPException
@@ -143,3 +144,26 @@ async def get_job_plot(job_id: str, db: Session = Depends(get_db)):
         return JSONResponse(content={"message": "Plotly Figure JSON", "job": job_id})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/api/metadata")
+async def get_metadata():
+    """Fetches the Kaptive package metadata."""
+    try:
+        dist = importlib.metadata.metadata('kaptive')
+        # Extract desired fields
+        return {
+            "name": dist.get("Name", "Kaptive"),
+            "version": dist.get("Version", "Unknown"),
+            "summary": dist.get("Summary", ""),
+            "author": dist.get("Author", "Unknown"),
+            "keywords": dist.get("Keywords", ""),
+        }
+    except importlib.metadata.PackageNotFoundError:
+        return {
+            "name": "Kaptive",
+            "version": "Not Installed",
+            "summary": "",
+            "author": "",
+            "keywords": "",
+        }
