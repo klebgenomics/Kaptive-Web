@@ -1,0 +1,39 @@
+site_name: "Kaptive-Web 🦠🧬💻"
+site_url: https://tomdstanton.github.io/Kaptive-Web
+repo_url: https://github.com/tomdstanton/Kaptive-Web
+site_description: "Lightweight Python Library for Bacterial Genomics"
+repo_name: "tomdstanton/Kaptive-Web"
+watch: [mkdocs.yml, README.md, src]
+
+nav:
+  - Home: index.md
+
+theme:
+  name: "material"
+  icon:
+    logo: 'material/virus'
+  homepage: https://tomdstanton.github.io/Kaptive-Web
+  palette:
+    scheme: kaptive
+  features:
+    - toc.follow
+    - content.action.edit
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+
+plugins:
+  - search
+  - termynal
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: "google"
+  - api-autonav:
+      modules: ['src/kaptive-web']
+      nav_section_title: "API Reference"
+  - include-markdown
