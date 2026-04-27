@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
-import os
+from pathlib import Path
 import logging
 from typing import Dict, List, Any
 
@@ -67,7 +67,7 @@ class KaptiveRunner:
 
                             if result:
                                 grouped_results[db_name].append({
-                                    "sample_name": os.path.basename(path),
+                                    "sample_name": Path(path).name,
                                     "best_match": result.best_match.name if result.best_match else "None",
                                     "confidence": result.match_confidence,
                                     "coverage": round(result.locus_coverage, 2),

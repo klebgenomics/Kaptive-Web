@@ -1,6 +1,6 @@
-import os
 import shutil
 import uuid
+from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
@@ -14,7 +14,7 @@ from kaptive_web.services.cache import KaptiveDatabaseCache
 from kaptive_web.services.runner import KaptiveRunner
 
 # Constants ------------------------------------------------------------------------------------------------------------
-UPLOAD_BASE_DIR = "/tmp/kaptive_uploads"
+UPLOAD_BASE_DIR = Path("/tmp/kaptive_uploads")
 
 # Init router ----------------------------------------------------------------------------------------------------------
 router = APIRouter()
@@ -32,15 +32,15 @@ async def submit_job(
         current_user: User = Depends(get_current_user)
 ):
     job_id = str(uuid.uuid4())
-    job_dir = os.path.join(UPLOAD_BASE_DIR, job_id)
-    os.makedirs(job_dir, exist_ok=True)
+    job_dir = UPLOAD_BASE_DIR / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
     saved_files = []
 
     for file in files:
-        file_path = os.path.join(job_dir, file.filename)
+        file_path = job_dir / file.filename
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        saved_files.append(file_path)
+        saved_files.append(str(file_path))
 
     # Determine which databases to run based on the species
     species_db_map = {

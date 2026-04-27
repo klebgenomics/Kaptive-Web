@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import Dict, Union
-import os
 
 from kaptive.database import Database, _DB_PATH, parse_database, parse_logic
 
