@@ -5,14 +5,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+import logfire
+
 from kaptive_web.api import endpoints
 from kaptive_web.models import database
 
 
-# Constants ---
+# Constants ------------------------------------------------------------------------------------------------------------
 _METADATA = importlib_metadata('kaptive_web')
 _KAPTIVE_METADATA = importlib_metadata("kaptive")
 
+
+# Start app ------------------------------------------------------------------------------------------------------------
 # Create the SQLite tables automatically on startup
 database.Base.metadata.create_all(bind=database.engine)
 
@@ -22,8 +26,12 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# logfire.configure()
-# logfire.instrument_fastapi(app)
+# Initialize Logfire
+logfire.configure()
+
+# Tell it to automatically instrument all FastAPI routes and Pydantic models
+logfire.instrument_fastapi(app)
+
 
 # Allow CORS if your frontend and backend end up on different ports during development
 app.add_middleware(
