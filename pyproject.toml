@@ -1,0 +1,80 @@
+[project]
+name = "kaptive-web"
+description = "Web interface for Kaptive, the tool for in silico serotyping"
+readme = {file = "README.md", content-type = "text/markdown"}
+authors = [
+    { name = "Tom Stanton", email = "tomdstanton@gmail.com" }
+]
+dynamic = ["version"]
+keywords = ["bioinformatics", "microbiology", "genomics", "serotyping"]
+license = {file = "LICENSE"}
+classifiers = [
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart", # Required by FastAPI for file uploads
+    "kaptive",
+    "sqlalchemy",
+    "logfire[fastapi]>=4.30.0",
+    "kaptive-plot>=0.0.1",
+]
+
+[project.urls]
+Homepage = "https://kaptive-web.erc.monash.edu/"
+Documentation = "https://tomdstanton.github.io/kaptive-web"
+Repository = "https://github.com/tomdstanton/Kaptive-Web.git"
+Issues = "https://github.com/tomdstanton/Kaptive-Web/issues"
+Changelog = "https://github.com/tomdstanton/Kaptive-Web/blob/master/CHANGELOG.md"
+
+[project.scripts]
+# This creates a terminal command you can run anywhere after installing
+kaptive-web-serve = "kaptive_web.cli:start_server"
+
+[dependency-groups]
+test = ["pytest"]
+docs = [
+    "mkdocs-material",
+    "mkdocs-api-autonav",
+    "mkdocs-include-markdown-plugin",
+    "termynal",
+    "zensical>=0.0.29",
+]
+dev = ["ruff", {include-group = "test"}, {include-group = "docs"}]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling", "hatch-vcs"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/kaptive_web/_version.py"
+
+[tool.hatch.build.targets.wheel]
+# This is the crucial part: it tells the builder to include your HTML/JS files
+packages = ["src/kaptive_web"]
+include = [
+    "src/kaptive_web/frontend/**/*",
+]
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
+testpaths = ["tests", "src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
