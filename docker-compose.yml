@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - kaptive-web
+
+  kaptive-web:
+    build: .
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/kaptive_web.db
+      # You can add your GitHub auth variables here or load them from .env
+      # - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      # - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+    env_file:
+      - .env
+    volumes:
+      - kaptive_data:/app/data
+
+volumes:
+  caddy_data:
+  caddy_config:
+  kaptive_data:

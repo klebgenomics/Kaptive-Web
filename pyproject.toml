@@ -26,13 +26,21 @@ classifiers = [
 ]
 dependencies = [
     "kaptive>=3.2.1",
-    "kaptive-plot>=0.0.1",
-    "fastapi",
+    "fastapi[standard]",
     "uvicorn[standard]",
     "python-multipart", # Required by FastAPI for file uploads
     "sqlalchemy",
     "logfire[fastapi]>=4.30.0",
-
+    "aiosqlite>=0.22.1",
+    "passlib>=1.7.4",
+    "bcrypt>=5.0.0",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.14.2",
+    "orjson>=3.11.9",
+    "authlib>=1.7.2",
+    "itsdangerous>=2.2.0",
+    "httpx2>=2.4.0",
+    "httpcore2>=2.4.0",
 ]
 
 [project.urls]
@@ -77,3 +85,6 @@ line-length = 120
 target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+
+[tool.uv.sources]
+kaptive = { path = "../Kaptive", editable = true }

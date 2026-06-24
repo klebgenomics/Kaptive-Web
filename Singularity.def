@@ -1,0 +1,27 @@
+BootStrap: docker
+From: python:3.11-slim
+
+%files
+    . /app
+
+%post
+    apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        git
+    rm -rf /var/lib/apt/lists/*
+    
+    cd /app
+    pip install --no-cache-dir .
+
+%environment
+    export LC_ALL=C
+    # Set default host and port for Uvicorn
+    export HOST=${HOST:-0.0.0.0}
+    export PORT=${PORT:-8000}
+
+%runscript
+    exec uvicorn kaptive_web.main:app --host $HOST --port $PORT "$@"
+
+%labels
+    Author Tom Stanton
+    Description Kaptive-Web Singularity Container

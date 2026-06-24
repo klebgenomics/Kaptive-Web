@@ -1,0 +1,4 @@
+# Replace 'localhost' with your actual domain when deploying to production
+localhost {
+    reverse_proxy kaptive-web:8000
+}
