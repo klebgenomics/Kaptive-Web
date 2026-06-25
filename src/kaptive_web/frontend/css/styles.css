@@ -526,6 +526,47 @@ th.db-o { background: var(--db-o-color); color: #8DCB89; }
 
 tr.sub-headers th { top: 40px; } /* Sticky offset for 2nd row headers */
 
+th.filterable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+th.filterable:hover {
+    background: var(--glass-border-faint);
+}
+.th-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+.filter-icon {
+    opacity: 0.3;
+    font-size: 0.8rem;
+    transition: opacity 0.2s, color 0.2s;
+}
+th.filterable:hover .filter-icon {
+    opacity: 0.8;
+}
+th.filterable.filtered .filter-icon {
+    opacity: 1;
+    color: var(--primary);
+}
+.filter-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.filter-checkbox-item:hover {
+    background: var(--glass-hover-bg);
+}
+.filter-checkbox-item input[type="checkbox"] {
+    cursor: pointer;
+}
+
 td {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--glass-border-faint);
@@ -549,7 +590,7 @@ tbody tr:hover { background-color: var(--glass-border-faint); }
 #plotly-wrapper {
     flex: 1;
     position: relative;
-    background: white; /* Plotly figures generally need a white background unless dark-themed in Python */
+    background: transparent;
     display: flex;
     align-items: stretch;
 }
@@ -567,7 +608,7 @@ tbody tr:hover { background-color: var(--glass-border-faint); }
     justify-content: center;
     color: #64748b;
     font-style: italic;
-    background: var(--bg-color); /* Overwrite the white wrapper for empty state */
+    background: transparent;
 }
 
 /* Loading States */

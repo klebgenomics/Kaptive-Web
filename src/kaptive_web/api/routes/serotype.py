@@ -32,7 +32,12 @@ async def get_databases(species: str):
             "name": meta.name,
             "version": meta.version,
             "organism": meta.organism,
-            "doi": meta.doi
+            "doi": meta.doi,
+            "antigen": meta.antigen,
+            "pathway": meta.pathway,
+            "loci_count": len(db.loci),
+            "genes_count": len(db.genes),
+            "contact": meta.contact
         })
         
     return db_info

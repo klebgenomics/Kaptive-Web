@@ -53,7 +53,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Analysis / Results elements
     const resultsTbody = document.getElementById('results-tbody');
     const tableLoading = document.getElementById('table-loading');
-    const searchInput = document.getElementById('search-input');
+    const filterPopover = document.getElementById('column-filter-popover');
+    const filterPopoverTitle = document.getElementById('filter-popover-title');
+    const filterSortAsc = document.getElementById('filter-sort-asc');
+    const filterSortDesc = document.getElementById('filter-sort-desc');
+    const filterSearchInput = document.getElementById('filter-search-input');
+    const filterSelectAll = document.getElementById('filter-select-all');
+    const filterClearAll = document.getElementById('filter-clear-all');
+    const filterCheckboxList = document.getElementById('filter-checkbox-list');
+    const filterApplyBtn = document.getElementById('filter-apply-btn');
     const plotViewport = document.getElementById('plot-viewport');
     const viewportTitle = document.getElementById('viewport-title');
     const closeViewportBtn = document.getElementById('close-viewport-btn');
@@ -159,7 +167,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!plotlyContainer.classList.contains('hidden') && plotViewport.classList.contains('maximized') || !plotViewport.classList.contains('minimized')) {
             // Need to relayout if active
             const update = {
-                'layout.template': activeTheme === 'light' ? 'plotly_white' : 'plotly_dark'
+                'layout.template': activeTheme === 'light' ? 'plotly_white' : 'plotly_dark',
+                'paper_bgcolor': 'rgba(0,0,0,0)',
+                'plot_bgcolor': 'rgba(0,0,0,0)'
             };
             try {
                 Plotly.relayout('plotly-container', update);
@@ -187,8 +197,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let allResults = [];
 let filteredResults = [];
 const selectedGenomes = new Set();
-const resultsRunFilter = document.getElementById('results-run-filter');
-const resultsConfidenceFilter = document.getElementById('results-confidence-filter');
+let activeColumnFilters = {};
+let currentSortConfig = { colId: null, direction: 'asc' };
+let currentFilterColId = null;
 const selectionTally = document.getElementById('selection-tally');
 
 function updateTally() {
@@ -383,10 +394,30 @@ function updateTally() {
                 const doiList = db.doi ? db.doi.map(d => d === 'TBD' ? `<span class="doi">${d}</span>` : `<a href="https://doi.org/${d}" target="_blank" rel="noopener noreferrer" class="doi">${d}</a>`).join(' ') : '';
                 const card = document.createElement('div');
                 card.className = 'db-card';
+                let contactsHtml = '';
+                if (db.contact) {
+                    const contactsList = Object.entries(db.contact).map(([name, email]) => {
+                        if (email && email.includes('@')) {
+                            return `<span style="white-space: nowrap;">${name} <a href="mailto:${email}" target="_blank" rel="noopener noreferrer" title="Email ${name}" style="text-decoration: none;">📧</a></span>`;
+                        }
+                        return `<span>${name}</span>`;
+                    }).join(', ');
+                    contactsHtml = `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;"><strong>Curators:</strong> ${contactsList}</p>`;
+                }
+                
                 card.innerHTML = `
-                    <h4>${db.name}</h4>
-                    <p>Organism: ${db.organism} | Version: ${db.version}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.2rem;">
+                        <h4 style="margin: 0; font-size: 1rem;">${db.name}</h4>
+                        <span class="badge" style="font-size: 0.7rem; background: var(--glass-hover-bg); color: var(--text-muted);">v${db.version}</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.2rem; margin-top: 0;">
+                        <strong>Antigen:</strong> ${db.antigen || 'Unknown'} (${db.pathway || 'Unknown'} pathway)
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; margin-top: 0;">
+                        <strong>Size:</strong> ${db.loci_count} Loci | ${db.genes_count} Genes
+                    </p>
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">${doiList}</div>
+                    ${contactsHtml}
                 `;
                 dbList.appendChild(card);
             });
@@ -528,18 +559,7 @@ function updateTally() {
         try {
             allResults = await api.getResults();
             
-            // Populate Run Filter
-            const runs = new Set();
-            allResults.forEach(r => {
-                if (r.run_id) runs.add(r.run_id);
-            });
-            resultsRunFilter.innerHTML = '<option value="any">Any Run</option>';
-            Array.from(runs).sort().reverse().forEach(run => {
-                const opt = document.createElement('option');
-                opt.value = run;
-                opt.textContent = run.slice(0, 8) + '...'; // display short run ID
-                resultsRunFilter.appendChild(opt);
-            });
+
             
             applyFilters();
         } catch (e) {
@@ -563,23 +583,41 @@ function updateTally() {
         }
 
         // Build dynamic thead
-        let superHeaders = `<tr><th>Genome</th>`;
-        let subHeaders = `<tr class="sub-headers"><th>Name</th>`;
+        let superHeaders = `<tr><th colspan="2" style="border-bottom: 1px solid var(--glass-border);">Sample Info</th>`;
+        let subHeaders = `<tr class="sub-headers">
+            <th class="filterable" data-col="genome_id"><div class="th-content"><span>Genome</span><span class="filter-icon">▼</span></div></th>
+            <th class="filterable" data-col="run_id"><div class="th-content"><span>Run</span><span class="filter-icon">▼</span></div></th>
+        `;
         
         currentDatabases.forEach((db, index) => {
-            // Alternate classes for styling if needed, or just standard classes
             const colorClass = index % 2 === 0 ? 'db-k' : 'db-o'; 
             superHeaders += `<th colspan="4" class="db-header ${colorClass}">${db.name}</th>`;
             subHeaders += `
-                <th>Locus</th>
-                <th>Serotype</th>
-                <th>Confidence</th>
+                <th class="filterable" data-col="db_${db.key}_locus"><div class="th-content"><span>Locus</span><span class="filter-icon">▼</span></div></th>
+                <th class="filterable" data-col="db_${db.key}_serotype"><div class="th-content"><span>Serotype</span><span class="filter-icon">▼</span></div></th>
+                <th class="filterable" data-col="db_${db.key}_confidence"><div class="th-content"><span>Confidence</span><span class="filter-icon">▼</span></div></th>
                 <th>Plot</th>
             `;
         });
         superHeaders += `</tr>`;
         subHeaders += `</tr>`;
         thead.innerHTML = superHeaders + subHeaders;
+        
+        // Bind click listeners
+        thead.querySelectorAll('.filterable').forEach(th => {
+            const colId = th.dataset.col;
+            if (activeColumnFilters[colId] && activeColumnFilters[colId].size > 0) {
+                th.classList.add('filtered');
+            }
+            if (currentSortConfig.colId === colId) {
+                th.querySelector('.filter-icon').textContent = currentSortConfig.direction === 'asc' ? '↓' : '↑';
+                th.querySelector('.filter-icon').style.opacity = '1';
+                th.querySelector('.filter-icon').style.color = 'var(--primary)';
+            }
+            th.addEventListener('click', (e) => {
+                openFilterPopover(e, colId, th.querySelector('span').textContent);
+            });
+        });
 
         if (speciesResults.length === 0) {
             const colspan = 1 + (currentDatabases.length * 4);
@@ -587,7 +625,9 @@ function updateTally() {
             return;
         }
 
-        speciesResults.forEach(res => {
+        let lastSelectedIndex = null;
+
+        speciesResults.forEach((res, index) => {
             const tr = document.createElement('tr');
             if (selectedGenomes.has(res.genome_id)) {
                 tr.classList.add('selected');
@@ -598,17 +638,57 @@ function updateTally() {
                 // Ignore clicks on buttons
                 if (e.target.tagName.toLowerCase() === 'button') return;
                 
-                if (selectedGenomes.has(res.genome_id)) {
-                    selectedGenomes.delete(res.genome_id);
-                    tr.classList.remove('selected');
+                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                const isCmdCtrl = isMac ? e.metaKey : e.ctrlKey;
+                const isShift = e.shiftKey;
+
+                if (isShift && lastSelectedIndex !== null) {
+                    // Range selection
+                    const start = Math.min(lastSelectedIndex, index);
+                    const end = Math.max(lastSelectedIndex, index);
+
+                    if (!isCmdCtrl) {
+                        selectedGenomes.clear();
+                        Array.from(resultsTbody.children).forEach(row => row.classList.remove('selected'));
+                    }
+                    
+                    for (let i = start; i <= end; i++) {
+                        const targetRes = speciesResults[i];
+                        selectedGenomes.add(targetRes.genome_id);
+                        resultsTbody.children[i].classList.add('selected');
+                    }
+                    // Keep lastSelectedIndex the same for consecutive shift-clicks
+                } else if (isCmdCtrl) {
+                    // Toggle selection
+                    if (selectedGenomes.has(res.genome_id)) {
+                        selectedGenomes.delete(res.genome_id);
+                        tr.classList.remove('selected');
+                    } else {
+                        selectedGenomes.add(res.genome_id);
+                        tr.classList.add('selected');
+                        lastSelectedIndex = index;
+                    }
                 } else {
+                    // Normal click: select ONLY this row
+                    selectedGenomes.clear();
+                    Array.from(resultsTbody.children).forEach(row => row.classList.remove('selected'));
                     selectedGenomes.add(res.genome_id);
                     tr.classList.add('selected');
+                    lastSelectedIndex = index;
                 }
+                
                 updateTally();
+                
+                // Clear text selection that naturally happens with shift-click
+                if (isShift) {
+                    window.getSelection().removeAllRanges();
+                }
             });
 
-            let trHtml = `<td class="genome-name">${res.genome_id}</td>`;
+            let trHtml = `
+                <td class="genome-name">${res.genome_id}</td>
+                <td><span class="badge" style="background: var(--glass-hover-bg);">${res.run_id ? res.run_id.slice(0,8) + '...' : 'N/A'}</span></td>
+            `;
             
             currentDatabases.forEach((db, index) => {
                 const dbData = res.databases[db.key] || {};
@@ -637,37 +717,190 @@ function updateTally() {
         });
     }
 
-    // --- Search / Filter ---
+    // --- Search / Filter & Sort ---
     function applyFilters() {
-        const term = searchInput.value.toLowerCase();
-        const runFilter = resultsRunFilter.value;
-        const confFilter = resultsConfidenceFilter.value;
+        // 1. Filter by Species
+        let resultPool = allResults.filter(res => res.species === currentSpecies);
         
-        filteredResults = allResults.filter(res => {
-            if (res.species !== currentSpecies) return false;
-            if (term && !res.genome_id.toLowerCase().includes(term)) return false;
-            if (runFilter !== 'any' && res.run_id !== runFilter) return false;
-            
-            if (confFilter !== 'any') {
-                // Check if any database in the genome matches the confidence
-                const hasMatch = Object.values(res.databases).some(dbData => {
-                    const typeable = dbData.is_typeable;
-                    if (confFilter === 'typeable' && typeable) return true;
-                    if (confFilter === 'untypeable' && !typeable) return true;
-                    return false;
-                });
-                if (!hasMatch) return false;
+        // 2. Apply Column Filters
+        resultPool = resultPool.filter(res => {
+            for (const [colId, selectedValues] of Object.entries(activeColumnFilters)) {
+                if (selectedValues.size === 0) continue; // no filter active for this col
+                
+                let val = getColValueForRes(res, colId);
+                if (!selectedValues.has(val)) return false;
             }
             return true;
         });
         
+        // 3. Apply Sorting
+        if (currentSortConfig.colId) {
+            resultPool.sort((a, b) => {
+                let valA = getColValueForRes(a, currentSortConfig.colId);
+                let valB = getColValueForRes(b, currentSortConfig.colId);
+                
+                if (valA === valB) return 0;
+                
+                const modifier = currentSortConfig.direction === 'asc' ? 1 : -1;
+                
+                // Handle missing values
+                if (valA === '-') return 1 * modifier;
+                if (valB === '-') return -1 * modifier;
+                
+                // String comparison
+                return String(valA).localeCompare(String(valB), undefined, {numeric: true}) * modifier;
+            });
+        }
+        
+        filteredResults = resultPool;
         renderTable(filteredResults);
         updateTally();
     }
+    
+    function getColValueForRes(res, colId) {
+        if (colId === 'genome_id') return res.genome_id;
+        if (colId === 'run_id') return res.run_id || 'N/A';
+        
+        // Dynamic DB columns
+        if (colId.startsWith('db_')) {
+            const parts = colId.split('_');
+            const dbKey = parts[1] + '_' + parts[2]; // e.g. db_ab_k_locus -> ab_k
+            const field = parts[3]; // locus, serotype, confidence
+            
+            const dbData = res.databases[dbKey] || {};
+            if (field === 'locus') return dbData.best_locus_name || '-';
+            if (field === 'serotype') return dbData.phenotype || '-';
+            if (field === 'confidence') {
+                return dbData.is_typeable !== undefined ? (dbData.is_typeable ? 'Typeable' : 'Untypeable') : '-';
+            }
+        }
+        return '-';
+    }
 
-    searchInput.addEventListener('input', applyFilters);
-    resultsRunFilter.addEventListener('change', applyFilters);
-    resultsConfidenceFilter.addEventListener('change', applyFilters);
+    // --- Popover Logic ---
+    function openFilterPopover(e, colId, colName) {
+        currentFilterColId = colId;
+        filterPopoverTitle.textContent = 'Filter ' + colName;
+        
+        // Calculate unique values for this column from current species results (pre-column-filter)
+        const speciesRes = allResults.filter(res => res.species === currentSpecies);
+        const uniqueValues = new Set();
+        speciesRes.forEach(res => {
+            uniqueValues.add(getColValueForRes(res, colId));
+        });
+        
+        // Populate checkboxes
+        populateFilterCheckboxes(Array.from(uniqueValues).sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true})));
+        
+        // Position popover
+        const rect = e.currentTarget.getBoundingClientRect();
+        filterPopover.style.top = (rect.bottom + window.scrollY) + 'px';
+        filterPopover.style.left = (rect.left + window.scrollX) + 'px';
+        
+        filterSearchInput.value = '';
+        filterPopover.classList.remove('hidden');
+        
+        // Prevent click from bubbling to document body which closes it
+        e.stopPropagation();
+    }
+    
+    function populateFilterCheckboxes(values) {
+        filterCheckboxList.innerHTML = '';
+        const searchTerm = filterSearchInput.value.toLowerCase();
+        
+        values.forEach(val => {
+            if (searchTerm && !String(val).toLowerCase().includes(searchTerm)) return;
+            
+            const div = document.createElement('div');
+            div.className = 'filter-checkbox-item';
+            
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = val;
+            
+            // Check if active
+            if (activeColumnFilters[currentFilterColId] && activeColumnFilters[currentFilterColId].has(val)) {
+                cb.checked = true;
+            }
+            
+            // If no active filters exist for this col, everything is checked by default visually
+            if (!activeColumnFilters[currentFilterColId] || activeColumnFilters[currentFilterColId].size === 0) {
+                 cb.checked = true;
+            }
+            
+            const label = document.createElement('span');
+            label.textContent = val;
+            
+            div.appendChild(cb);
+            div.appendChild(label);
+            
+            div.addEventListener('click', (e) => {
+                if (e.target !== cb) cb.checked = !cb.checked;
+            });
+            
+            filterCheckboxList.appendChild(div);
+        });
+    }
+    
+    // Close popover when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!filterPopover.contains(e.target)) {
+            filterPopover.classList.add('hidden');
+        }
+    });
+    
+    filterSearchInput.addEventListener('input', () => {
+        // Re-populate using all unique values
+        const speciesRes = allResults.filter(res => res.species === currentSpecies);
+        const uniqueValues = new Set();
+        speciesRes.forEach(res => uniqueValues.add(getColValueForRes(res, currentFilterColId)));
+        populateFilterCheckboxes(Array.from(uniqueValues).sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true})));
+    });
+    
+    filterSelectAll.addEventListener('click', (e) => {
+        e.preventDefault();
+        filterCheckboxList.querySelectorAll('input').forEach(cb => cb.checked = true);
+    });
+    
+    filterClearAll.addEventListener('click', (e) => {
+        e.preventDefault();
+        filterCheckboxList.querySelectorAll('input').forEach(cb => cb.checked = false);
+    });
+    
+    filterApplyBtn.addEventListener('click', () => {
+        const checked = Array.from(filterCheckboxList.querySelectorAll('input:checked')).map(cb => cb.value);
+        const visibleValues = Array.from(filterCheckboxList.querySelectorAll('input')).map(cb => cb.value);
+        
+        if (!activeColumnFilters[currentFilterColId]) {
+            activeColumnFilters[currentFilterColId] = new Set();
+        }
+        
+        // If all visible items are checked, and there is no search filter, we are clearing the filter
+        if (checked.length === visibleValues.length && filterSearchInput.value === '') {
+            activeColumnFilters[currentFilterColId].clear();
+        } else {
+            // Need to retain previously checked values that are currently hidden by search!
+            // First remove any visible values from the active set
+            visibleValues.forEach(val => activeColumnFilters[currentFilterColId].delete(val));
+            // Then add back the checked ones
+            checked.forEach(val => activeColumnFilters[currentFilterColId].add(val));
+        }
+        
+        filterPopover.classList.add('hidden');
+        applyFilters();
+    });
+    
+    filterSortAsc.addEventListener('click', () => {
+        currentSortConfig = { colId: currentFilterColId, direction: 'asc' };
+        filterPopover.classList.add('hidden');
+        applyFilters();
+    });
+    
+    filterSortDesc.addEventListener('click', () => {
+        currentSortConfig = { colId: currentFilterColId, direction: 'desc' };
+        filterPopover.classList.add('hidden');
+        applyFilters();
+    });
 
     // --- Analysis Tab: Plotly Viewport ---
     async function loadPlot(runId, genomeId, dbKey) {

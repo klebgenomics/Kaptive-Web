@@ -17,10 +17,8 @@ A step-by-step tutorial is also available [here](https://bit.ly/kaptive-workshop
 ## Installing Kaptive-Web
 `kaptive-web` is now easier than ever to install and run
 
-<!-- termynal -->
 ```bash
 $ pip install kaptive-web
----> 100%
 $ kaptive-web-serve
 ```
 

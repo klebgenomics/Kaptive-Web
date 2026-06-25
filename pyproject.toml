@@ -25,7 +25,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "kaptive>=3.2.1",
+    "kaptive[plot]",
     "fastapi[standard]",
     "uvicorn[standard]",
     "python-multipart", # Required by FastAPI for file uploads
@@ -53,11 +53,6 @@ Changelog = "https://github.com/tomdstanton/Kaptive-Web/blob/master/CHANGELOG.md
 [project.scripts]
 # This creates a terminal command you can run anywhere after installing
 kaptive-web = "kaptive_web.cli:main"
-
-[dependency-groups]
-test = ["pytest", "pytest-cov"]
-docs = ["zensical>=0.0.33", "mkdocstrings[python]"]
-dev = [{ include-group = "test" }, { include-group = "docs" }]
 
 [build-system]
 build-backend = "hatchling.build"
