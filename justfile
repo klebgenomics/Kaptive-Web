@@ -17,6 +17,7 @@ test: sync
 
 # Clean Python virtual environments
 clean:
+    rm -f kaptive_web.db 
     rm -rf .venv
     find . -type d -name "__pycache__" -exec rm -rf {} +
     find . -type d -name ".pytest_cache" -exec rm -rf {} +
@@ -40,3 +41,7 @@ docker-stop:
 # Build the Singularity (.sif) image
 singularity-build:
     sudo singularity build kaptive-web.sif Singularity.def
+
+# Build the Apptainer (.sif) image
+apptainer-build:
+    sudo apptainer build kaptive-web.sif Apptainer.def

@@ -9,10 +9,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=2">
+    <link rel="stylesheet" href="css/styles.css?v=3">
 
     <!-- Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
@@ -23,7 +29,10 @@
     <!-- Login View Overlay -->
     <div id="auth-view" class="view-container active">
         <div class="glass-card login-card">
-            <h1 class="brand-title">Kaptive<span class="highlight">Web</span></h1>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 0.5rem;">
+                <img src="logo.png" alt="Kaptive Logo" style="height: 3.5rem; width: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                <h1 class="brand-title" style="margin-bottom: 0;">Kaptive<span class="highlight">Web</span></h1>
+            </div>
             <p class="brand-subtitle">Log in via GitHub or ORCID to access the dashboard.</p>
 
             <div class="login-actions" style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -59,14 +68,14 @@
                 <img src="logo.png" alt="Logo" class="header-logo">
                 <div style="display: flex; align-items: baseline; gap: 0.5rem;">
                     <div class="logo">Kaptive<span class="highlight">Web</span></div>
-                    <span id="app-version" style="font-size: 0.75rem; color: #a0a0a0; font-family: monospace;"></span>
                 </div>
             </div>
 
             <nav class="header-tabs">
-                <button class="tab-btn active" data-tab="home-tab">🏠 Home</button>
-                <button class="tab-btn" data-tab="analysis-tab">📊 Serotyping Results</button>
-                <button class="tab-btn" data-tab="api-tab">📚 API Documentation</button>
+                <button class="tab-btn active" data-tab="home-tab"><i data-lucide="home" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: text-bottom;"></i>Home</button>
+                <button class="tab-btn" data-tab="analysis-tab"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: text-bottom;"></i>Serotyping Results</button>
+                <button class="tab-btn" data-tab="api-tab"><i data-lucide="book-open" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: text-bottom;"></i>API Documentation</button>
+                <button class="tab-btn" data-tab="about-tab"><i data-lucide="info" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: text-bottom;"></i>About</button>
             </nav>
 
             <div class="header-actions">
@@ -97,10 +106,8 @@
                     </svg>
                 </button>
                 <div class="user-profile">
-                    <span id="username-display"></span>
                     <button id="settings-nav-btn" class="btn btn-icon btn-ghost hidden"
-                        title="User Settings">⚙️</button>
-                    <button id="logout-btn" class="btn btn-ghost hidden">Logout</button>
+                        title="User Settings"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></button>
                     <button id="login-nav-btn" class="btn btn-primary hidden">Login</button>
                 </div>
             </div>
@@ -115,7 +122,7 @@
 
                     <!-- Databases Info -->
                     <div class="glass-panel databases-panel">
-                        <h2>🦠 Select Species</h2>
+                        <h2 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="microscope"></i> Select Species</h2>
                         <p class="subtitle">Choose an organism to view its loaded serotyping databases and citations.
                         </p>
                         <div class="species-select-container">
@@ -130,13 +137,13 @@
 
                     <!-- Upload Zone -->
                     <div class="glass-panel upload-panel relative">
-                        <h2>🧬 Upload Genomes</h2>
+                        <h2 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="dna"></i> Upload Genomes</h2>
                         <p class="subtitle">Drag and drop up to 1000 assemblies.</p>
 
                         <div id="upload-dropzone" class="dropzone">
                             <div class="dropzone-content">
-                                <span class="drop-icon">📁</span>
-                                <p>Select or drag FASTA files here.</p>
+                                <i data-lucide="folder-open" style="width: 48px; height: 48px; margin: 0 auto 1rem auto; display: block; color: var(--primary);"></i>
+                                <p style="margin-bottom: 1.25rem;">Select or drag FASTA files here.</p>
                                 <input type="file" id="file-input" multiple accept=".fasta,.fa,.fna,.fas,.gz,.bz2,.xz"
                                     hidden>
                                 <button id="browse-btn" class="btn btn-secondary">Browse Files</button>
@@ -145,12 +152,12 @@
 
                         <div class="upload-actions">
                             <span id="file-count">0 files selected</span>
-                            <button id="start-run-btn" class="btn btn-primary" disabled>🚀 Serotype!</button>
+                            <button id="start-run-btn" class="btn btn-primary" disabled><i data-lucide="play" style="width: 16px; height: 16px;"></i> Serotype!</button>
                         </div>
 
                         <!-- Lock Overlay -->
                         <div id="upload-lock" class="lock-overlay">
-                            <span class="lock-icon">🔒</span>
+                            <i data-lucide="lock" style="width: 48px; height: 48px; margin-bottom: 1rem;"></i>
                             <h3>Authentication Required</h3>
                             <p>You must log in to run analyses and upload genomes.</p>
                             <button class="btn btn-primary login-prompt-btn">Login Now</button>
@@ -178,8 +185,9 @@
                         <div class="toolbar-actions" style="display: flex; align-items: center; gap: 1rem;">
                             <span id="selection-tally" style="font-size: 0.85rem; color: var(--text-muted);">0 genomes
                                 selected</span>
-                            <button id="download-tsv-btn" class="btn btn-secondary">📥 Download TSV</button>
-                            <button id="download-json-btn" class="btn btn-secondary">📥 Download JSON</button>
+                            <button id="download-tsv-btn" class="btn btn-secondary"><i data-lucide="download" style="width: 16px; height: 16px;"></i> Download TSV</button>
+                            <button id="download-json-btn" class="btn btn-secondary"><i data-lucide="download" style="width: 16px; height: 16px;"></i> Download JSON</button>
+                            <button id="compare-btn" class="btn btn-primary" disabled><i data-lucide="git-compare" style="width: 16px; height: 16px;"></i> Compare</button>
                         </div>
                     </div>
 
@@ -204,24 +212,37 @@
                 <!-- Detail Pane: Plotly Viewport -->
                 <section class="detail-pane glass-panel minimized" id="plot-viewport">
                     <div class="viewport-header">
-                        <h3 id="viewport-title">📈 Interactive Locus Plot</h3>
-                        <div class="viewport-controls">
-                            <button id="toggle-maximize-btn" class="btn btn-icon" title="Maximize Viewport">⛶</button>
-                            <button id="close-viewport-btn" class="btn btn-icon" title="Close">✕</button>
+                        <h3 id="viewport-title" style="display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                            <i data-lucide="search"></i> 
+                            <span id="viewport-genome-id">Locus Details</span>
+                            <select id="viewport-db-select" class="form-input hidden" style="padding: 0.2rem 1.5rem 0.2rem 0.5rem; font-size: 0.9rem; height: auto;"></select>
+                        </h3>
+                        <div class="viewport-controls" style="display: flex; gap: 1rem; align-items: center;">
+                            <div class="toggle-group" style="display: flex; background: var(--glass-panel-bg-light); border-radius: 6px; padding: 2px; border: 1px solid var(--glass-border);">
+                                <button id="view-plot-toggle" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border-radius: 4px; background: var(--glass-hover-bg);">Plot</button>
+                                <button id="view-summary-toggle" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border-radius: 4px;">Summary</button>
+                            </div>
+                            <div style="display: flex;">
+                                <button id="toggle-maximize-btn" class="btn btn-icon" title="Maximize Viewport">⛶</button>
+                                <button id="close-viewport-btn" class="btn btn-icon" title="Close">✕</button>
+                            </div>
                         </div>
                     </div>
 
                     <div id="plotly-wrapper">
                         <!-- Plotly instance mounted here -->
                         <div id="plotly-container"></div>
+                        <div id="summary-container" class="hidden" style="position: absolute; inset: 0; overflow-y: auto; background: var(--glass-panel-bg); z-index: 10;">
+                            <pre id="summary-content" style="padding: 1.5rem; margin: 0; color: var(--text); font-family: monospace; white-space: pre-wrap;"></pre>
+                        </div>
 
                         <div id="plot-empty-state" class="empty-state">
-                            <p>Select a locus plot from the table to inspect it here.</p>
+                            <p>Select a locus from the table to view its details here.</p>
                         </div>
 
                         <div id="plot-loading" class="loading-overlay hidden">
                             <div class="spinner"></div>
-                            <p>Generating interactive plot...</p>
+                            <p>Generating view...</p>
                         </div>
                     </div>
                 </section>
@@ -234,7 +255,32 @@
                 </div>
             </div>
 
+            <!-- ABOUT TAB -->
+            <div id="about-tab" class="tab-pane block-tab" style="overflow-y: auto;">
+                <div class="glass-panel" style="max-width: 800px; margin: 0 auto 2rem auto; padding: 2rem; display: block;">
+                    <div id="about-content" style="color: var(--text); line-height: 1.6;">Loading...</div>
+                </div>
+            </div>
+
         </main>
+
+        <!-- Footer -->
+        <footer style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0.75rem 1.5rem; border-top: 1px solid var(--glass-border); font-size: 0.8rem; color: var(--text-muted); background: var(--glass-panel-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 0 0 16px 16px; position: relative; z-index: 10;">
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span>© 2026 Tom Stanton</span>
+                <span>Licensed under GPLv3</span>
+            </div>
+            <div style="text-align: center;">
+                <span>Kaptive-Web <span id="app-version" style="font-family: monospace; opacity: 0.8;"></span></span>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <a href="https://github.com/tomdstanton/Kaptive-Web" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="View Source on GitHub">
+                    <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    </svg>
+                </a>
+            </div>
+        </footer>
     </div>
 
     <!-- Floating Progress Bar -->
@@ -270,6 +316,10 @@
                 </div>
             </div>
 
+            <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem; padding-bottom: 1.5rem;">
+                <button id="logout-btn" class="btn btn-ghost" style="color: #ef4444; border: 1px solid #ef444455; transition: all 0.2s; width: 100%;" onmouseover="this.style.background='#ef444422'" onmouseout="this.style.background='transparent'">Logout</button>
+            </div>
+
             <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
                 <h4 style="margin-bottom: 0.5rem; color: #ff4d4f;">Danger Zone</h4>
                 <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">Permanently delete your account
@@ -289,9 +339,9 @@
             <strong id="filter-popover-title" style="font-size: 0.9rem;">Filter</strong>
             <div style="display: flex; gap: 0.2rem;">
                 <button id="filter-sort-asc" class="btn btn-icon" title="Sort A-Z"
-                    style="padding: 0.2rem 0.4rem; font-size: 0.8rem;">↓</button>
+                    style="padding: 0.2rem 0.4rem;"><i data-lucide="arrow-down-a-z" style="width: 16px; height: 16px;"></i></button>
                 <button id="filter-sort-desc" class="btn btn-icon" title="Sort Z-A"
-                    style="padding: 0.2rem 0.4rem; font-size: 0.8rem;">↑</button>
+                    style="padding: 0.2rem 0.4rem;"><i data-lucide="arrow-up-z-a" style="width: 16px; height: 16px;"></i></button>
             </div>
         </div>
         <input type="text" id="filter-search-input" class="form-input" placeholder="Search..."
@@ -311,8 +361,39 @@
         </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Compare Window (Floating) -->
+    <div id="compare-modal" class="detail-pane glass-panel hidden" style="top: 10vh; left: 10vw; bottom: auto; right: auto; width: 80vw; height: 80vh; max-width: 1200px; padding: 0; display: flex; flex-direction: column;">
+        <div class="modal-header" style="padding: 1rem 1.5rem; margin: 0; background: var(--glass-header-bg); border-bottom: 1px solid var(--glass-border);">
+            <h2 style="margin: 0; font-size: 1.25rem;">Locus Comparison</h2>
+            <div id="compare-db-buttons" style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                <!-- Database buttons populated dynamically -->
+            </div>
+            <div style="flex: 1;"></div>
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1.5rem; cursor: pointer; font-size: 0.9rem;">
+                <input type="checkbox" id="compare-show-all-links"> Show all links
+            </label>
+            <button class="modal-close" id="close-compare-modal">&times;</button>
+        </div>
+        <div class="modal-body" style="flex: 1; min-height: 400px; display: flex; flex-direction: column; overflow: hidden; position: relative; padding: 1rem;">
+            <div id="compare-loading" class="loading-overlay hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; border-radius: var(--radius-lg);">
+                <div style="text-align: center; width: 80%; max-width: 400px;">
+                    <div class="spinner" style="margin-bottom: 1rem;"></div>
+                    <p id="compare-loading-text" style="margin-bottom: 1rem;">Generating comparison...</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="compare-progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="compare-plot" style="flex: 1; width: 100%; height: 100%;">
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+                    Select a database above to compare loci.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js?v=4"></script>
+    <script src="js/app.js?v=4"></script>
 </body>
 
 </html>

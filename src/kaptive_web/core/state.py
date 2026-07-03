@@ -1,5 +1,5 @@
 from kaptive.db import Database, DatabaseManager
-from kaptive.serotyping.serotyper import Serotyper, ConfidenceEvaluator
+from kaptive.serotyping import Serotyper, ConfidenceEvaluator
 from kaptive_web.core.config import settings
 
 class AppState:

@@ -1,6 +1,7 @@
 :root {
     /* Base non-changing vars */
     --primary: #6C2A6A;
+    --primary-rgb: 108, 42, 106;
     --primary-hover: #4a1c49;
     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -14,7 +15,7 @@
     --glass-bg: rgba(40, 40, 40, 0.85);
     --glass-border: rgba(255, 255, 255, 0.1);
     
-    --glass-header-bg: rgba(15, 23, 42, 0.8);
+    --glass-header-bg: rgba(30, 30, 46, 0.85); /* Matches fastapi-swagger-dark but transparent */
     --glass-panel-bg: rgba(0, 0, 0, 0.2);
     --glass-panel-bg-light: rgba(0, 0, 0, 0.1);
     --glass-hover-bg: rgba(255, 255, 255, 0.1);
@@ -210,6 +211,7 @@ a:hover {
 .glass-header {
     background: var(--glass-header-bg);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--glass-border);
     padding: 0 2rem;
     display: flex;
@@ -295,6 +297,9 @@ a:hover {
 }
 .tab-pane.active {
     display: flex; /* or block depending on pane */
+}
+.tab-pane.block-tab.active {
+    display: block;
 }
 
 /* Home Grid */
@@ -449,21 +454,35 @@ a:hover {
 }
 
 .detail-pane {
-    flex: 0 0 45%; /* Default 45% width when expanded */
-    min-width: 400px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 600px;
+    height: 400px;
+    min-width: 300px;
+    min-height: 200px;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    resize: both;
+    overflow: hidden;
+    transition: opacity var(--transition);
+    display: flex;
+    flex-direction: column;
 }
 
 .detail-pane.minimized {
-    flex: 0 0 0%;
-    min-width: 0;
-    border: none;
     opacity: 0;
     pointer-events: none;
     display: none;
 }
 
 .detail-pane.maximized {
-    flex: 1;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    resize: none;
+    border-radius: 0;
 }
 .master-pane.minimized {
     flex: 0 0 0%;
@@ -584,6 +603,10 @@ tbody tr:hover { background-color: var(--glass-border-faint); }
     padding: 1rem;
     border-bottom: 1px solid var(--glass-border);
     background: var(--glass-panel-bg);
+    cursor: grab;
+}
+.viewport-header:active {
+    cursor: grabbing;
 }
 .viewport-header h3 { font-size: 1.1rem; font-weight: 500; }
 
@@ -649,4 +672,57 @@ tbody tr:hover { background-color: var(--glass-border-faint); }
 }
 #results-tbody tr.selected:hover {
     background-color: rgba(var(--primary-rgb), 0.15);
+}
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--glass-overlay-bg);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-overlay.hidden {
+    display: none !important;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    padding: 1.5rem;
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+.modal-close:hover {
+    color: var(--text-main);
 }

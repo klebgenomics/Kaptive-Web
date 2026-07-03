@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pathlib import Path
 
 class Settings(BaseSettings):
     app_name: str = "Kaptive Web"

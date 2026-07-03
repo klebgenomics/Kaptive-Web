@@ -25,7 +25,6 @@ async def get_me(user: User = Depends(get_current_user)):
     """Returns the current user's profile."""
     return {
         "id": user.id,
-        "username": user.username,
         "api_key": user.api_key
     }
 
@@ -35,12 +34,12 @@ async def delete_me(user: User = Depends(get_current_user), repo: Repository = D
     await repo.delete_user_cascade(user.id)
     return {"status": "deleted"}
 
-async def handle_user_login(repo: Repository, scoped_id: str, username: str):
+async def handle_user_login(repo: Repository, scoped_id: str):
     """Helper method to check the DB, generate API keys, and redirect."""
     user = await repo.get_user_by_id(scoped_id)
     if not user:
         api_key = generate_api_key()
-        await repo.create_user(scoped_id, username, api_key)
+        await repo.create_user(scoped_id, api_key)
         return RedirectResponse(f"/?api_key={api_key}")
     else:
         return RedirectResponse(f"/?api_key={user.api_key}")
@@ -71,9 +70,8 @@ async def orcid_callback(request: Request, repo: Repository = Depends(get_reposi
         raise HTTPException(status_code=400, detail=f"ORCID Auth Failed: {str(e)}")
 
     orcid_id = f"orcid_{orcid_str}"
-    username = name or f"orcid_user_{orcid_str}"
-
-    return await handle_user_login(repo, orcid_id, username)
+    
+    return await handle_user_login(repo, orcid_id)
 
 # --- GitHub Logic ---
 @router.get("/github/login")
@@ -94,7 +92,6 @@ async def github_callback(request: Request, repo: Repository = Depends(get_repos
         user_data = resp.json()
         
         github_str = str(user_data["id"])
-        username = user_data.get("login", f"github_user_{github_str}")
         
     except OAuthError as e:
         raise HTTPException(status_code=400, detail=f"OAuth Error: {e.error}")
@@ -102,4 +99,4 @@ async def github_callback(request: Request, repo: Repository = Depends(get_repos
         raise HTTPException(status_code=400, detail=f"GitHub Auth Failed: {str(e)}")
 
     github_id = f"github_{github_str}"
-    return await handle_user_login(repo, github_id, username)
+    return await handle_user_login(repo, github_id)

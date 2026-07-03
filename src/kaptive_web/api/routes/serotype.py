@@ -2,8 +2,14 @@ import os
 import tempfile
 import orjson
 from typing import List
+import io
+import gzip
+import zipfile
 
+import uuid
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi.responses import Response
 
 from kaptive_web.core.responses import KaptiveORJSONResponse
 from kaptive_web.api.routes.auth import get_current_user, get_repository
@@ -11,7 +17,15 @@ from kaptive_web.db.repository import Repository, User
 from kaptive_web.services.pipeline import process_genomes
 from kaptive_web.core.state import state
 
+from kaptive.serotyping import SerotypingResult, KaptiveRow
+from kaptive.plotting import SerotypingResultPlotter, LocusComparisonPlotter
+from kaptive.compare import LocusComparator
+
+
 router = APIRouter(prefix="/serotype", tags=["serotyping"])
+
+# Global memory cache for ephemeral locus comparison tasks
+comparison_tasks = {}
 
 @router.get("/species", response_class=KaptiveORJSONResponse)
 async def get_species():
@@ -41,6 +55,113 @@ async def get_databases(species: str):
         })
         
     return db_info
+
+class CompareRequest(BaseModel):
+    run_id: str
+    genome_ids: list[str]
+    database_key: str
+    dark_mode: bool = False
+    show_all_links: bool = False
+
+async def run_locus_comparison_task(task_id: str, run_id: str, genome_ids: list[str], database_key: str, dark_mode: bool, show_all_links: bool, repo: Repository):
+    try:
+        results = await repo.get_run_results(run_id)
+        # Filter to requested genomes
+        target_results = [r for r in results if r.genome_id in genome_ids]
+        
+        # Parse into SerotypingResult objects
+        serotyping_results = []
+        for r in target_results:
+            parsed = orjson.loads(r.results_json)
+            if database_key in parsed:
+                res = SerotypingResult.from_dict(parsed[database_key])
+                serotyping_results.append(res)
+        
+        comparison_tasks[task_id]["progress"] = 25.0
+        
+        if len(serotyping_results) < 2:
+            comparison_tasks[task_id]["status"] = "failed"
+            comparison_tasks[task_id]["error"] = "Not enough valid results found for comparison."
+            return
+            
+        loci = []
+        backbones = []
+        names = []
+        locus_pieces = []
+        gene_ctg_indices = []
+        
+        for res in serotyping_results:
+            mask = res.gene_hits.is_inside & ~res.gene_hits.is_extra
+            loci.append(res.translations[mask])
+            backbones.append(res.gene_hits.t_intervals[mask])
+            gene_ctg_indices.append(res.gene_hits.t_indices[mask])
+            names.append(res.genome)
+            locus_pieces.append(res.locus_pieces)
+        
+        comparison_tasks[task_id]["progress"] = 50.0
+        
+        comparator = LocusComparator()
+        comparisons = comparator(
+            loci, 
+            locus_names=names, 
+            backbones=backbones, 
+            locus_pieces=locus_pieces,
+            gene_ctg_indices=gene_ctg_indices
+        )
+        
+        comparison_tasks[task_id]["progress"] = 75.0
+        
+        plotter = LocusComparisonPlotter()
+        fig = plotter(comparisons=comparisons, dark_mode=dark_mode, show_all_links=show_all_links)
+        
+        comparison_tasks[task_id]["progress"] = 100.0
+        comparison_tasks[task_id]["status"] = "completed"
+        comparison_tasks[task_id]["result"] = orjson.loads(fig.to_json())
+        
+    except Exception as e:
+        comparison_tasks[task_id]["status"] = "failed"
+        comparison_tasks[task_id]["error"] = str(e)
+
+
+@router.post("/compare")
+async def start_comparison(
+    req: CompareRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    repo: Repository = Depends(get_repository)
+):
+    run = await repo.get_run(req.run_id)
+    if not run or run.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized or run not found.")
+        
+    task_id = str(uuid.uuid4())
+    comparison_tasks[task_id] = {
+        "status": "running",
+        "progress": 0.0,
+        "result": None,
+        "error": None
+    }
+    
+    background_tasks.add_task(
+        run_locus_comparison_task,
+        task_id=task_id,
+        run_id=req.run_id,
+        genome_ids=req.genome_ids,
+        database_key=req.database_key,
+        dark_mode=req.dark_mode,
+        show_all_links=req.show_all_links,
+        repo=repo
+    )
+    
+    return {"task_id": task_id}
+
+
+@router.get("/compare/{task_id}")
+async def get_comparison_status(task_id: str):
+    if task_id not in comparison_tasks:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return comparison_tasks[task_id]
+
 
 @router.post("/{species}", response_class=KaptiveORJSONResponse)
 async def submit_serotyping_job(
@@ -120,18 +241,15 @@ async def get_run_results(
 
     results = await repo.get_run_results(run_id)
     
-    # We parse the results_json so it returns as a proper JSON object instead of a stringified string
-    parsed_results = {res.genome_id: orjson.loads(res.results_json) for res in results}
+    # Manually construct JSON to bypass parsing overhead
+    json_parts = []
+    for res in results:
+        genome_id_json = orjson.dumps(res.genome_id).decode('utf-8')
+        json_parts.append(f"{genome_id_json}: {res.results_json}")
+        
+    final_json = "{" + ",".join(json_parts) + "}"
     
-    return {
-        "run_id": run.id,
-        "status": run.status,
-        "species": run.species,
-        "created_at": run.created_at,
-        "total_genomes": run.total_genomes,
-        "completed_genomes": len(results),
-        "results": parsed_results
-    }
+    return Response(content=f'{{"run_id": "{run.id}", "status": "{run.status}", "species": "{run.species}", "created_at": "{run.created_at}", "total_genomes": {run.total_genomes}, "completed_genomes": {len(results)}, "results": {final_json}}}', media_type="application/json")
 
 @router.get("/results", response_class=KaptiveORJSONResponse)
 async def get_all_results(
@@ -143,29 +261,29 @@ async def get_all_results(
     runs = await repo.get_runs_for_user(current_user.id)
     run_species_map = {run.id: run.species for run in runs}
     
-    # Parse results_json and structure into a flat list
-    flattened_results = []
+    # Parse results_json and structure into a flat list manually for massive performance boost
+    json_parts = []
     for res in results:
-        flattened_results.append({
-            "genome_id": res.genome_id,
-            "completed_at": res.completed_at,
-            "run_id": res.run_id,
-            "species": run_species_map.get(res.run_id, "Unknown"),
-            "databases": orjson.loads(res.results_json)
-        })
+        species = run_species_map.get(res.run_id, "Unknown")
+        genome_id_json = orjson.dumps(res.genome_id).decode('utf-8')
+        completed_at_json = orjson.dumps(res.completed_at).decode('utf-8')
+        run_id_json = orjson.dumps(res.run_id).decode('utf-8')
+        species_json = orjson.dumps(species).decode('utf-8')
         
-    return flattened_results
+        row_json = f'{{"genome_id": {genome_id_json}, "completed_at": {completed_at_json}, "run_id": {run_id_json}, "species": {species_json}, "databases": {res.results_json}}}'
+        json_parts.append(row_json)
+        
+    final_json = "[" + ",".join(json_parts) + "]"
+    return Response(content=final_json, media_type="application/json")
 
-@router.get("/plot/{run_id}/{genome_id}/{database_key}", response_class=KaptiveORJSONResponse)
-async def get_plot(
+async def get_target_serotyping_result(
     run_id: str,
     genome_id: str,
     database_key: str,
     current_user: User = Depends(get_current_user),
     repo: Repository = Depends(get_repository)
 ):
-    """Dynamically reconstructs a SerotypingResult and generates a Plotly JSON schema for the frontend."""
-    # Ensure user owns the run
+    """Reusable dependency to extract and deserialize a specific SerotypingResult."""
     run = await repo.get_run(run_id)
     if not run or run.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized or run not found.")
@@ -180,21 +298,23 @@ async def get_plot(
     if database_key not in parsed_json:
         raise HTTPException(status_code=404, detail=f"Database {database_key} not found for this genome.")
 
-    # Deserialize the dictionary back into a full SerotypingResult
-    from kaptive.serotyping.serotyper import SerotypingResult
     try:
-        result_obj = SerotypingResult.from_dict(parsed_json[database_key])
+        return SerotypingResult.from_dict(parsed_json[database_key])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to deserialize result: {str(e)}")
 
-    # Generate the Plotly figure
-    from kaptive.plotting import SerotypeResultPlotter
-    plotter = SerotypeResultPlotter()
-    fig = plotter(result_obj)
+@router.get("/plot/{run_id}/{genome_id}/{database_key}", response_class=KaptiveORJSONResponse)
+async def get_plot(dark_mode: bool = False, result_obj = Depends(get_target_serotyping_result)):
+    """Generates a Plotly JSON schema for the frontend."""
+    plotter = SerotypingResultPlotter()
+    fig = plotter(result_obj, dark_mode=dark_mode)
 
     return orjson.loads(fig.to_json())
 
-from fastapi.responses import Response
+@router.get("/plot/{run_id}/{genome_id}/{database_key}/summary", response_class=KaptiveORJSONResponse)
+async def get_summary(result_obj = Depends(get_target_serotyping_result)):
+    """Generates a text summary for the frontend."""
+    return {"summary": result_obj.to_summary()}
 
 @router.get("/runs/{run_id}/download/json")
 async def download_run_json(
@@ -209,25 +329,20 @@ async def download_run_json(
 
     results = await repo.get_run_results(run_id)
     
-    # We use orjson to rapidly construct the JSON bytes
-    parsed_results = {res.genome_id: ororjson.loads(res.results_json) for res in results}
-    json_bytes = orjson.dumps(parsed_results, option=orjson.OPT_INDENT_2)
+    # Manually construct JSON to bypass massive parsing overhead
+    json_parts = []
+    for res in results:
+        genome_id_json = orjson.dumps(res.genome_id).decode('utf-8')
+        json_parts.append(f"{genome_id_json}: {res.results_json}")
+        
+    final_json = "{\n  " + ",\n  ".join(json_parts) + "\n}"
+    json_bytes = final_json.encode('utf-8')
     
     return Response(
         content=json_bytes,
         media_type="application/json",
         headers={"Content-Disposition": f'attachment; filename="results_{run_id}.json"'}
     )
-
-
-
-import io
-import gzip
-import zipfile
-from pydantic import BaseModel
-from fastapi.responses import Response, StreamingResponse
-from kaptive.serotyping.serotyper import SerotypingResult
-from kaptive.serotyping.io import TsvWriter, KaptiveRow
 
 class DownloadRequest(BaseModel):
     genome_ids: list[str]
@@ -317,11 +432,8 @@ async def download_tsv(
         for db_key, result_list in db_results.items():
             tsv_buf = io.BytesIO()
             evaluator = db_evaluators[db_key]
-            
-            with TsvWriter(tsv_buf, KaptiveRow, evaluator) as writer:
-                for r in result_list:
-                    writer.write(r)
-            
+            tsv_buf.write(KaptiveRow.header())
+            tsv_buf.write(''.join(bytes(KaptiveRow.from_result(r, evaluator(r))) for r in result_list))
             # Write bytes to zip archive
             zf.writestr(f"kaptive_results_{db_key}.tsv", tsv_buf.getvalue())
             
@@ -332,3 +444,4 @@ async def download_tsv(
         media_type="application/zip",
         headers={"Content-Disposition": 'attachment; filename="kaptive_results_tsv.zip"'}
     )
+

@@ -2,6 +2,11 @@
  * Main application logic for Kaptive-Web
  */
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Lucide icons
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+
     // Fetch and display version
     const verData = await api.getVersion();
     if (verData && verData.version) {
@@ -21,7 +26,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const guestBtn = document.getElementById('guest-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const loginNavBtn = document.getElementById('login-nav-btn');
-    const usernameDisplay = document.getElementById('username-display');
     
     // Settings elements
     const settingsNavBtn = document.getElementById('settings-nav-btn');
@@ -66,7 +70,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     const viewportTitle = document.getElementById('viewport-title');
     const closeViewportBtn = document.getElementById('close-viewport-btn');
     const toggleMaximizeBtn = document.getElementById('toggle-maximize-btn');
+    const plotlyContainer = document.getElementById('plotly-container');
+    const viewPlotToggle = document.getElementById('view-plot-toggle');
+    const viewSummaryToggle = document.getElementById('view-summary-toggle');
 
+    // Viewport state
+    let currentViewRunId = null;
+    let currentViewGenomeId = null;
+    let currentViewDbKey = null;
+    let activeViewMode = 'plot'; // 'plot' or 'summary'
+
+    // Compare Modal elements
+    const compareBtn = document.getElementById('compare-btn');
+    const compareModal = document.getElementById('compare-modal');
+    const closeCompareModal = document.getElementById('close-compare-modal');
+    const compareDbButtonsContainer = document.getElementById('compare-db-buttons');
+    const compareLoading = document.getElementById('compare-loading');
+    const compareLoadingText = document.getElementById('compare-loading-text');
+    const compareProgressBar = document.getElementById('compare-progress-bar');
+    const comparePlotContainer = document.getElementById('compare-plot');
+
+    let comparePollingInterval = null;
+    let currentCompareParams = null;
+    
+    const compareShowAllLinksCheckbox = document.getElementById('compare-show-all-links');
+    if (compareShowAllLinksCheckbox) {
+        compareShowAllLinksCheckbox.addEventListener('change', () => {
+            if (currentCompareParams) {
+                startLocusComparison(currentCompareParams.runId, currentCompareParams.genomeIds, currentCompareParams.dbKey);
+            }
+        });
+    }
+
+    // Make Plotly responsive to manual viewport resizing
+    const resizeObserver = new ResizeObserver(() => {
+        if (plotlyContainer && !plotViewport.classList.contains('minimized') && plotlyContainer.children.length > 0) {
+            Plotly.Plots.resize('plotly-container');
+        }
+    });
+    resizeObserver.observe(plotViewport);
 
     async function triggerDownload(endpoint, format) {
         let ids = Array.from(selectedGenomes);
@@ -122,8 +164,101 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    if (compareBtn) {
+        compareBtn.addEventListener('click', () => {
+            if (selectedGenomes.size < 2) return;
+            
+            // Populate database buttons
+            compareDbButtonsContainer.innerHTML = '';
+            currentDatabases.forEach(db => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-secondary';
+                btn.style.padding = '0.3rem 0.6rem';
+                btn.style.fontSize = '0.85rem';
+                btn.textContent = db.name;
+                
+                btn.addEventListener('click', () => {
+                    // Start comparison
+                    const genomeIds = Array.from(selectedGenomes);
+                    const firstSelected = allResults.find(r => r.genome_id === genomeIds[0]);
+                    const runId = firstSelected ? firstSelected.run_id : null;
+                    startLocusComparison(runId, genomeIds, db.key);
+                });
+                
+                compareDbButtonsContainer.appendChild(btn);
+            });
+            
+            compareModal.classList.remove('hidden');
+        });
+    }
+    
+    if (closeCompareModal) {
+        closeCompareModal.addEventListener('click', () => {
+            compareModal.classList.add('hidden');
+            if (comparePollingInterval) {
+                clearInterval(comparePollingInterval);
+                comparePollingInterval = null;
+            }
+            compareLoading.classList.add('hidden');
+            comparePlotContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">Select a database above to compare loci.</div>';
+        });
+    }
+    
+    async function startLocusComparison(runId, genomeIds, dbKey) {
+        currentCompareParams = { runId, genomeIds, dbKey };
+        compareLoading.classList.remove('hidden');
+        compareLoadingText.textContent = "Generating comparison...";
+        compareProgressBar.style.width = "0%";
+        comparePlotContainer.innerHTML = '';
+        
+        try {
+            const isLight = document.body.classList.contains('theme-light');
+            const showAllLinks = compareShowAllLinksCheckbox?.checked || false;
+            const data = await api.startComparison(runId, genomeIds, dbKey, showAllLinks, !isLight);
+            const taskId = data.task_id;
+            
+            if (comparePollingInterval) clearInterval(comparePollingInterval);
+            
+            comparePollingInterval = setInterval(async () => {
+                try {
+                    const statusData = await api.getComparisonStatus(taskId);
+                    compareProgressBar.style.width = `${statusData.progress || 0}%`;
+                    
+                    if (statusData.status === 'completed') {
+                        clearInterval(comparePollingInterval);
+                        comparePollingInterval = null;
+                        compareLoading.classList.add('hidden');
+                        
+                        statusData.result.layout.plot_bgcolor = "rgba(0,0,0,0)";
+                        statusData.result.layout.paper_bgcolor = "rgba(0,0,0,0)";
+                        Plotly.newPlot(comparePlotContainer, statusData.result.data, statusData.result.layout, {responsive: true});
+                        if (!comparePlotContainer._resizeObserver) {
+                            comparePlotContainer._resizeObserver = new ResizeObserver(() => {
+                                if (comparePlotContainer.data) {
+                                    Plotly.Plots.resize(comparePlotContainer);
+                                }
+                            });
+                            comparePlotContainer._resizeObserver.observe(comparePlotContainer);
+                        }
+                    } else if (statusData.status === 'failed') {
+                        clearInterval(comparePollingInterval);
+                        comparePollingInterval = null;
+                        compareLoadingText.textContent = "❌ Failed: " + (statusData.error || 'Unknown error');
+                        compareProgressBar.style.background = "#ff4d4f";
+                    }
+                } catch (e) {
+                    console.error("Polling comparison error:", e);
+                }
+            }, 1000);
+            
+        } catch(e) {
+            console.error("Start comparison error:", e);
+            compareLoadingText.textContent = "❌ Failed to start comparison.";
+            compareProgressBar.style.background = "#ff4d4f";
+        }
+    }
 
-    const plotlyContainer = document.getElementById('plotly-container');
+
     const plotEmptyState = document.getElementById('plot-empty-state');
     const plotLoading = document.getElementById('plot-loading');
 
@@ -164,17 +299,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         // Update any open plotly graphs
-        if (!plotlyContainer.classList.contains('hidden') && plotViewport.classList.contains('maximized') || !plotViewport.classList.contains('minimized')) {
-            // Need to relayout if active
-            const update = {
-                'layout.template': activeTheme === 'light' ? 'plotly_white' : 'plotly_dark',
-                'paper_bgcolor': 'rgba(0,0,0,0)',
-                'plot_bgcolor': 'rgba(0,0,0,0)'
-            };
-            try {
-                Plotly.relayout('plotly-container', update);
-            } catch (e) {}
+        if (!plotlyContainer.classList.contains('hidden') && (!plotViewport.classList.contains('minimized') || plotViewport.classList.contains('maximized'))) {
+            if (activeViewMode === 'plot' && currentViewRunId && currentViewGenomeId && currentViewDbKey) {
+                loadPlot(currentViewRunId, currentViewGenomeId, currentViewDbKey);
+            }
         }
+        
+        // Update comparison plot if open
+        if (!compareModal.classList.contains('hidden') && currentCompareParams) {
+            startLocusComparison(currentCompareParams.runId, currentCompareParams.genomeIds, currentCompareParams.dbKey);
+        }
+        
+        // Update API Docs iframe theme (Swagger UI)
+        try {
+            const apiIframe = document.querySelector('#api-tab iframe');
+            const updateIframe = () => {
+                try {
+                    const doc = apiIframe.contentDocument;
+                    if (!doc) return;
+                    
+                    const links = doc.querySelectorAll('link[rel="stylesheet"]');
+                    let targetLink = null;
+                    links.forEach(link => {
+                        if (link.href.includes('dark_theme.css') || link.href.includes('swagger-ui.css')) {
+                            targetLink = link;
+                        }
+                    });
+                    
+                    if (targetLink) {
+                        if (activeTheme === 'dark') {
+                            if (!targetLink.href.includes('dark_theme.css')) {
+                                targetLink.href = '/dark_theme.css';
+                            }
+                        } else {
+                            if (!targetLink.href.includes('swagger-ui.css')) {
+                                targetLink.href = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css';
+                            }
+                        }
+                    }
+                } catch(e) {}
+            };
+            if (apiIframe) {
+                updateIframe();
+                apiIframe.addEventListener('load', updateIframe);
+            }
+        } catch(e) {}
     }
     
     themeToggleBtn.addEventListener('click', () => {
@@ -206,6 +375,14 @@ function updateTally() {
     if (selectionTally) {
         selectionTally.textContent = `${selectedGenomes.size} / ${filteredResults.length} genomes selected`;
     }
+    const selectAllCheckbox = document.getElementById('select-all-genomes');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = selectedGenomes.size > 0 && selectedGenomes.size === filteredResults.length;
+        selectAllCheckbox.indeterminate = selectedGenomes.size > 0 && selectedGenomes.size < filteredResults.length;
+    }
+    if (compareBtn) {
+        compareBtn.disabled = selectedGenomes.size < 2;
+    }
 }
 
     let selectedFiles = [];
@@ -221,6 +398,20 @@ function updateTally() {
         
         document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
         document.getElementById(tabId).classList.add('active');
+        
+        if (tabId === 'about-tab' && !document.getElementById('about-content').hasAttribute('data-loaded')) {
+            document.getElementById('about-content').innerHTML = '<div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p>';
+            fetch('/api/about').then(r => r.json()).then(data => {
+                if (window.marked) {
+                    document.getElementById('about-content').innerHTML = marked.parse(data.content || "No content");
+                } else {
+                    document.getElementById('about-content').innerHTML = `<pre>${data.content}</pre>`;
+                }
+                document.getElementById('about-content').setAttribute('data-loaded', 'true');
+            }).catch(err => {
+                document.getElementById('about-content').innerHTML = '<p style="color: red">Failed to load about info.</p>';
+            });
+        }
     }
 
     tabBtns.forEach(btn => {
@@ -305,7 +496,6 @@ function updateTally() {
         dashboardView.classList.add('active');
         
         if (isAuthenticated && user) {
-            usernameDisplay.textContent = user.username;
             logoutBtn.classList.remove('hidden');
             settingsNavBtn.classList.remove('hidden');
             loginNavBtn.classList.add('hidden');
@@ -317,7 +507,6 @@ function updateTally() {
             initSpeciesDropdown();
             loadResults();
         } else {
-            usernameDisplay.textContent = "Guest Mode";
             logoutBtn.classList.add('hidden');
             settingsNavBtn.classList.add('hidden');
             loginNavBtn.classList.remove('hidden');
@@ -337,6 +526,7 @@ function updateTally() {
     });
 
     logoutBtn.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
         api.clearApiKey();
         showAuthView();
     });
@@ -585,8 +775,8 @@ function updateTally() {
         // Build dynamic thead
         let superHeaders = `<tr><th colspan="2" style="border-bottom: 1px solid var(--glass-border);">Sample Info</th>`;
         let subHeaders = `<tr class="sub-headers">
+            <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-genomes" title="Select All"></th>
             <th class="filterable" data-col="genome_id"><div class="th-content"><span>Genome</span><span class="filter-icon">▼</span></div></th>
-            <th class="filterable" data-col="run_id"><div class="th-content"><span>Run</span><span class="filter-icon">▼</span></div></th>
         `;
         
         currentDatabases.forEach((db, index) => {
@@ -596,12 +786,28 @@ function updateTally() {
                 <th class="filterable" data-col="db_${db.key}_locus"><div class="th-content"><span>Locus</span><span class="filter-icon">▼</span></div></th>
                 <th class="filterable" data-col="db_${db.key}_serotype"><div class="th-content"><span>Serotype</span><span class="filter-icon">▼</span></div></th>
                 <th class="filterable" data-col="db_${db.key}_confidence"><div class="th-content"><span>Confidence</span><span class="filter-icon">▼</span></div></th>
-                <th>Plot</th>
+                <th>View</th>
             `;
         });
         superHeaders += `</tr>`;
         subHeaders += `</tr>`;
         thead.innerHTML = superHeaders + subHeaders;
+        
+        const selectAllCheckbox = document.getElementById('select-all-genomes');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    filteredResults.forEach(res => selectedGenomes.add(res.genome_id));
+                    Array.from(resultsTbody.children).forEach(row => row.classList.add('selected'));
+                    resultsTbody.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
+                } else {
+                    selectedGenomes.clear();
+                    Array.from(resultsTbody.children).forEach(row => row.classList.remove('selected'));
+                    resultsTbody.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+                }
+                updateTally();
+            });
+        }
         
         // Bind click listeners
         thead.querySelectorAll('.filterable').forEach(th => {
@@ -633,61 +839,11 @@ function updateTally() {
                 tr.classList.add('selected');
             }
             
-            tr.style.cursor = 'pointer';
-            tr.addEventListener('click', (e) => {
-                // Ignore clicks on buttons
-                if (e.target.tagName.toLowerCase() === 'button') return;
-                
-                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-                const isCmdCtrl = isMac ? e.metaKey : e.ctrlKey;
-                const isShift = e.shiftKey;
-
-                if (isShift && lastSelectedIndex !== null) {
-                    // Range selection
-                    const start = Math.min(lastSelectedIndex, index);
-                    const end = Math.max(lastSelectedIndex, index);
-
-                    if (!isCmdCtrl) {
-                        selectedGenomes.clear();
-                        Array.from(resultsTbody.children).forEach(row => row.classList.remove('selected'));
-                    }
-                    
-                    for (let i = start; i <= end; i++) {
-                        const targetRes = speciesResults[i];
-                        selectedGenomes.add(targetRes.genome_id);
-                        resultsTbody.children[i].classList.add('selected');
-                    }
-                    // Keep lastSelectedIndex the same for consecutive shift-clicks
-                } else if (isCmdCtrl) {
-                    // Toggle selection
-                    if (selectedGenomes.has(res.genome_id)) {
-                        selectedGenomes.delete(res.genome_id);
-                        tr.classList.remove('selected');
-                    } else {
-                        selectedGenomes.add(res.genome_id);
-                        tr.classList.add('selected');
-                        lastSelectedIndex = index;
-                    }
-                } else {
-                    // Normal click: select ONLY this row
-                    selectedGenomes.clear();
-                    Array.from(resultsTbody.children).forEach(row => row.classList.remove('selected'));
-                    selectedGenomes.add(res.genome_id);
-                    tr.classList.add('selected');
-                    lastSelectedIndex = index;
-                }
-                
-                updateTally();
-                
-                // Clear text selection that naturally happens with shift-click
-                if (isShift) {
-                    window.getSelection().removeAllRanges();
-                }
-            });
+            // Selection is now handled entirely by the checkbox
 
             let trHtml = `
-                <td class="genome-name">${res.genome_id}</td>
-                <td><span class="badge" style="background: var(--glass-hover-bg);">${res.run_id ? res.run_id.slice(0,8) + '...' : 'N/A'}</span></td>
+                <td style="text-align: center;"><input type="checkbox" class="row-checkbox" value="${res.genome_id}" ${selectedGenomes.has(res.genome_id) ? 'checked' : ''}></td>
+                <td><span class="font-mono">${res.genome_id}</span></td>
             `;
             
             currentDatabases.forEach((db, index) => {
@@ -698,23 +854,47 @@ function updateTally() {
                     <td>${dbData.best_locus_name || '-'}</td>
                     <td><span class="badge ${badgeClass}">${dbData.phenotype || '-'}</span></td>
                     <td>${dbData.is_typeable !== undefined ? (dbData.is_typeable ? 'Typeable' : 'Untypeable') : '-'}</td>
-                    <td>${dbData.best_locus_name ? `<button class="btn btn-secondary btn-icon view-plot-btn" data-run="${res.run_id}" data-genome="${res.genome_id}" data-db="${db.key}">Plot</button>` : '-'}</td>
+                    <td>${dbData.best_locus_name ? `<button class="btn btn-secondary btn-icon view-btn" data-run="${res.run_id}" data-genome="${res.genome_id}" data-db="${db.key}" title="View Details"><i data-lucide="search" style="width: 16px; height: 16px; margin-right: 4px;"></i> View</button>` : '-'}</td>
                 `;
             });
-            
+
             tr.innerHTML = trHtml;
             resultsTbody.appendChild(tr);
+            
+            // Sync checkbox state if row is clicked natively
+            const rowCheckbox = tr.querySelector('.row-checkbox');
+            if (rowCheckbox) {
+                rowCheckbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedGenomes.add(res.genome_id);
+                        tr.classList.add('selected');
+                    } else {
+                        selectedGenomes.delete(res.genome_id);
+                        tr.classList.remove('selected');
+                    }
+                    updateTally();
+                });
+            }
         });
 
-        // Add event listeners to plot buttons
-        document.querySelectorAll('.view-plot-btn').forEach(btn => {
+        // Add event listeners to unified view buttons
+        document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const runId = e.target.getAttribute('data-run');
-                const genomeId = e.target.getAttribute('data-genome');
-                const dbKey = e.target.getAttribute('data-db');
-                loadPlot(runId, genomeId, dbKey);
+                const button = e.target.closest('button');
+                currentViewRunId = button.getAttribute('data-run');
+                currentViewGenomeId = button.getAttribute('data-genome');
+                currentViewDbKey = button.getAttribute('data-db');
+                
+                if (activeViewMode === 'plot') {
+                    loadPlot(currentViewRunId, currentViewGenomeId, currentViewDbKey);
+                } else {
+                    loadSummary(currentViewRunId, currentViewGenomeId, currentViewDbKey);
+                }
             });
         });
+        
+        // Ensure new icons are rendered
+        if (window.lucide) window.lucide.createIcons();
     }
 
     // --- Search / Filter & Sort ---
@@ -759,7 +939,6 @@ function updateTally() {
     
     function getColValueForRes(res, colId) {
         if (colId === 'genome_id') return res.genome_id;
-        if (colId === 'run_id') return res.run_id || 'N/A';
         
         // Dynamic DB columns
         if (colId.startsWith('db_')) {
@@ -902,23 +1081,96 @@ function updateTally() {
         applyFilters();
     });
 
-    // --- Analysis Tab: Plotly Viewport ---
+    const summaryContainer = document.getElementById('summary-container');
+    const summaryContent = document.getElementById('summary-content');
+    const viewportGenomeId = document.getElementById('viewport-genome-id');
+    const viewportDbSelect = document.getElementById('viewport-db-select');
+
+    if (viewportDbSelect) {
+        viewportDbSelect.addEventListener('change', (e) => {
+            const selectedDb = e.target.value;
+            if (selectedDb && selectedDb !== currentViewDbKey) {
+                currentViewDbKey = selectedDb;
+                if (activeViewMode === 'plot') {
+                    loadPlot(currentViewRunId, currentViewGenomeId, selectedDb);
+                } else {
+                    loadSummary(currentViewRunId, currentViewGenomeId, selectedDb);
+                }
+            }
+        });
+    }
+
+    function updateViewportTitle(runId, genomeId, dbKey) {
+        if (viewportGenomeId) {
+            const limit = 25;
+            if (genomeId.length > limit) {
+                viewportGenomeId.textContent = genomeId.substring(0, limit - 3) + '...';
+            } else {
+                viewportGenomeId.textContent = genomeId;
+            }
+            viewportGenomeId.title = genomeId; // Tooltip on hover
+        }
+        
+        const resultObj = allResults.find(r => r.run_id === runId && r.genome_id === genomeId);
+        
+        if (resultObj && resultObj.databases && viewportDbSelect) {
+            const dbKeys = Object.keys(resultObj.databases);
+            viewportDbSelect.innerHTML = '';
+            dbKeys.forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = key;
+                if (key === dbKey) {
+                    option.selected = true;
+                }
+                viewportDbSelect.appendChild(option);
+            });
+            viewportDbSelect.classList.remove('hidden');
+            viewportDbSelect.style.display = 'block';
+        } else if (viewportDbSelect) {
+            viewportDbSelect.classList.add('hidden');
+            viewportDbSelect.style.display = 'none';
+        }
+    }
+
+    async function loadSummary(runId, genomeId, dbKey) {
+        plotViewport.classList.remove('minimized');
+        plotEmptyState.classList.add('hidden');
+        plotlyContainer.classList.add('hidden');
+        summaryContainer.classList.add('hidden');
+        plotLoading.classList.remove('hidden');
+        
+        updateViewportTitle(runId, genomeId, dbKey);
+
+        try {
+            const sumData = await api.getPlotSummary(runId, genomeId, dbKey);
+            plotLoading.classList.add('hidden');
+            summaryContainer.classList.remove('hidden');
+            summaryContent.innerHTML = marked.parse(sumData.summary);
+        } catch (e) {
+            plotLoading.classList.add('hidden');
+            plotEmptyState.classList.remove('hidden');
+            plotEmptyState.innerHTML = `<p style="color: #ff4d4f">Failed to load summary: ${e.message}</p>`;
+        }
+    }
+
     async function loadPlot(runId, genomeId, dbKey) {
         // Open viewport
         plotViewport.classList.remove('minimized');
         plotEmptyState.classList.add('hidden');
         plotlyContainer.classList.add('hidden');
+        if (summaryContainer) summaryContainer.classList.add('hidden');
         plotLoading.classList.remove('hidden');
         
-        viewportTitle.textContent = `📈 ${genomeId} - ${dbKey}`;
+        updateViewportTitle(runId, genomeId, dbKey);
 
         try {
-            const plotData = await api.getPlotJson(runId, genomeId, dbKey);
+            const isLight = document.body.classList.contains('theme-light');
+            const plotData = await api.getPlotJson(runId, genomeId, dbKey, !isLight);
             plotLoading.classList.add('hidden');
             plotlyContainer.classList.remove('hidden');
             
             // Adjust plot template based on active theme
-            const isLight = document.body.classList.contains('theme-light');
             plotData.layout.template = isLight ? "plotly_white" : "plotly_dark";
             plotData.layout.paper_bgcolor = "rgba(0,0,0,0)";
             plotData.layout.plot_bgcolor = "rgba(0,0,0,0)";
@@ -937,14 +1189,117 @@ function updateTally() {
         Plotly.purge('plotly-container');
         plotEmptyState.classList.remove('hidden');
         plotlyContainer.classList.add('hidden');
+        if (summaryContainer) summaryContainer.classList.add('hidden');
+        currentViewRunId = null;
+        currentViewGenomeId = null;
+        currentViewDbKey = null;
     });
 
+    // Viewport Toggle Logic
+    viewPlotToggle.addEventListener('click', () => {
+        activeViewMode = 'plot';
+        viewPlotToggle.style.background = 'var(--glass-hover-bg)';
+        viewSummaryToggle.style.background = 'transparent';
+        if (currentViewRunId && currentViewGenomeId && currentViewDbKey) {
+            loadPlot(currentViewRunId, currentViewGenomeId, currentViewDbKey);
+        }
+    });
+
+    viewSummaryToggle.addEventListener('click', () => {
+        activeViewMode = 'summary';
+        viewSummaryToggle.style.background = 'var(--glass-hover-bg)';
+        viewPlotToggle.style.background = 'transparent';
+        if (currentViewRunId && currentViewGenomeId && currentViewDbKey) {
+            loadSummary(currentViewRunId, currentViewGenomeId, currentViewDbKey);
+        }
+    });
+
+    // Reusable drag functionality
+    function makeDraggable(container, header) {
+        let isDragging = false;
+        let dragStartX, dragStartY, initialLeft, initialTop;
+        
+        header.addEventListener('mousedown', (e) => {
+            if (container.classList.contains('maximized')) return;
+            if (e.target.closest('button') || e.target.closest('select')) return;
+            
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            
+            const rect = container.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            
+            container.style.bottom = 'auto';
+            container.style.right = 'auto';
+            container.style.left = initialLeft + 'px';
+            container.style.top = initialTop + 'px';
+            
+            document.body.style.userSelect = 'none';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            container.style.left = (initialLeft + dx) + 'px';
+            container.style.top = (initialTop + dy) + 'px';
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                document.body.style.userSelect = '';
+            }
+        });
+        
+        // Make the header indicate it's draggable
+        header.style.cursor = 'move';
+    }
+
+    const viewportHeader = plotViewport.querySelector('.viewport-header');
+    makeDraggable(plotViewport, viewportHeader);
+    
+    const compareHeader = compareModal.querySelector('.modal-header');
+    if (compareHeader) {
+        makeDraggable(compareModal, compareHeader);
+    }
+
+    // Save state before maximizing
+    let preMaxState = { top: '', left: '', bottom: '', right: '', width: '', height: '' };
+
     toggleMaximizeBtn.addEventListener('click', () => {
-        plotViewport.classList.toggle('maximized');
-        if (plotViewport.classList.contains('maximized')) {
+        if (!plotViewport.classList.contains('maximized')) {
+            // Maximize
+            preMaxState = {
+                top: plotViewport.style.top,
+                left: plotViewport.style.left,
+                bottom: plotViewport.style.bottom,
+                right: plotViewport.style.right,
+                width: plotViewport.style.width,
+                height: plotViewport.style.height
+            };
+            plotViewport.style.top = '';
+            plotViewport.style.left = '';
+            plotViewport.style.bottom = '';
+            plotViewport.style.right = '';
+            plotViewport.style.width = '';
+            plotViewport.style.height = '';
+            
+            plotViewport.classList.add('maximized');
             toggleMaximizeBtn.textContent = '🗗';
             toggleMaximizeBtn.title = 'Restore Viewport';
         } else {
+            // Restore
+            plotViewport.classList.remove('maximized');
+            plotViewport.style.top = preMaxState.top;
+            plotViewport.style.left = preMaxState.left;
+            plotViewport.style.bottom = preMaxState.bottom;
+            plotViewport.style.right = preMaxState.right;
+            plotViewport.style.width = preMaxState.width;
+            plotViewport.style.height = preMaxState.height;
+            
             toggleMaximizeBtn.textContent = '⛶';
             toggleMaximizeBtn.title = 'Maximize Viewport';
         }

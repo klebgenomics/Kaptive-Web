@@ -1,12 +1,14 @@
 import orjson
-from fastapi.responses import ORJSONResponse
+from starlette.responses import JSONResponse
 from typing import Any
 
-class KaptiveORJSONResponse(ORJSONResponse):
+class KaptiveORJSONResponse(JSONResponse):
     """
-    A custom ORJSONResponse that specifically serializes NumPy arrays and dataclasses 
+    A custom JSONResponse that specifically serializes NumPy arrays and dataclasses 
     extremely fast using orjson's native C hooks.
     """
+    media_type = "application/json"
+
     def render(self, content: Any) -> bytes:
         return orjson.dumps(
             content, 

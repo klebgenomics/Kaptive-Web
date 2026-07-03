@@ -105,8 +105,8 @@ class KaptiveAPI {
         return await res.json();
     }
 
-    async getPlotJson(runId, genomeId, dbKey) {
-        const cacheKey = `${runId}_${genomeId}_${dbKey}`;
+    async getPlotJson(runId, genomeId, dbKey, darkMode = false) {
+        const cacheKey = `${runId}_${genomeId}_${dbKey}_${darkMode}`;
         
         // LRU Cache hit
         if (this.plotCache.has(cacheKey)) {
@@ -118,7 +118,7 @@ class KaptiveAPI {
         }
 
         // Cache miss, fetch from network
-        const res = await fetch(`${this.baseUrl}/serotype/plot/${runId}/${genomeId}/${dbKey}`, {
+        const res = await fetch(`${this.baseUrl}/serotype/plot/${runId}/${genomeId}/${dbKey}?dark_mode=${darkMode}`, {
             headers: this.getHeaders()
         });
         
@@ -137,6 +137,62 @@ class KaptiveAPI {
         }
         
         return data;
+    }
+
+    async getPlotSummary(runId, genomeId, dbKey) {
+        const cacheKey = `summary_${runId}_${genomeId}_${dbKey}`;
+        
+        if (this.plotCache.has(cacheKey)) {
+            const data = this.plotCache.get(cacheKey);
+            this.plotCache.delete(cacheKey);
+            this.plotCache.set(cacheKey, data);
+            return data;
+        }
+
+        const res = await fetch(`${this.baseUrl}/serotype/plot/${runId}/${genomeId}/${dbKey}/summary`, {
+            headers: this.getHeaders()
+        });
+        
+        if (!res.ok) throw new Error(`Summary API Error: ${res.status}`);
+        
+        const data = await res.json();
+        
+        this.plotCache.set(cacheKey, data);
+        if (this.plotCache.size > this.MAX_CACHE_SIZE) {
+            const oldestKey = this.plotCache.keys().next().value;
+            this.plotCache.delete(oldestKey);
+        }
+        
+        return data;
+    }
+
+    async startComparison(runId, genomeIds, dbKey, showAllLinks = false, darkMode = false) {
+        const res = await fetch(`${this.baseUrl}/serotype/compare`, {
+            method: 'POST',
+            headers: {
+                ...this.getHeaders(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                run_id: runId,
+                genome_ids: genomeIds,
+                database_key: dbKey,
+                show_all_links: showAllLinks,
+                dark_mode: darkMode
+            })
+        });
+        if (!res.ok) {
+            let errBody = "";
+            try { errBody = await res.text(); } catch(e) {}
+            throw new Error(`API Error: ${res.status} ${errBody}`);
+        }
+        return await res.json();
+    }
+
+    async getComparisonStatus(taskId) {
+        const res = await fetch(`${this.baseUrl}/serotype/compare/${taskId}`, { headers: this.getHeaders() });
+        if (!res.ok) throw new Error(`API Error: ${res.status}`);
+        return await res.json();
     }
 }
 
