@@ -213,6 +213,5 @@ __marimo__/
 .DS_Store
 
 # Antigravity
-.agent/
+.agents/
 SKILLS.md
-kaptive_web.db

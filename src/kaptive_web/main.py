@@ -1,18 +1,37 @@
-import os
+import argparse
 import secrets
 from contextlib import asynccontextmanager
+from importlib.metadata import metadata as importlib_metadata
+from pathlib import Path
 
+import fastapi_swagger_dark
+import structlog
+import uvicorn
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from prometheus_fastapi_instrumentator import Instrumentator
+from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from kaptive_web._version import __version__
-from kaptive_web.core.config import settings
-from kaptive_web.core.responses import KaptiveORJSONResponse
-from kaptive_web.core.state import state
-from kaptive_web.db.repository import Repository
 from kaptive_web.api.routes import auth, serotype
+from kaptive_web.core.config import settings
+from kaptive_web.core.logging import setup_logging
+from kaptive_web.core.responses import KaptiveORJSONResponse
+from kaptive_web.core.state import AppState
+from kaptive_web.db.repository import Repository
+
+# Globals --------------------------------------------------------------------------------------------------------------
+logger = structlog.get_logger(__name__)
+
+_DIST = settings.app_name.lower()
+_METADATA = importlib_metadata(_DIST)
+_VERSION = _METADATA["version"]
+_SUMMARY = _METADATA["summary"]
+_DESCRIPTION = _METADATA["description"]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,109 +40,81 @@ async def lifespan(app: FastAPI):
     await Repository.connect(db_path)
     repo = Repository(db_path)
     await repo.init_db()
-    
     # 2. Pre-load Serotyper Pipelines into Memory
-    print("Discovering and loading databases into memory...")
-    state.init_all()
-    print("Initialization complete.")
-    
+    AppState.load_databases()
     yield
-    
     # Clean up resources if necessary on shutdown
-    print("Shutting down Kaptive-Web...")
+    logger.info(f"Shutting down {settings.app_name}...")
     await Repository.close()
 
-import fastapi_swagger_dark
 
+# App ------------------------------------------------------------------------------------------------------------------
 app = FastAPI(
     title=settings.app_name,
-    description="Web interface and API for Kaptive, the tool for in silico serotyping.",
-    version=__version__,
+    summary=_SUMMARY,
+    # description=_DESCRIPTION,
+    version=_VERSION,
     default_response_class=KaptiveORJSONResponse,
     lifespan=lifespan,
-    docs_url=None  # Disable default docs to use fastapi_swagger_dark
+    docs_url=None,  # Disable default docs to use fastapi_swagger_dark
+    middleware=[
+        Middleware(GZipMiddleware, minimum_size=1000),
+        Middleware(CORSMiddleware, 
+                   allow_origins=getattr(settings, "cors_origins", ["http://localhost:8000", "http://127.0.0.1:8000"]), 
+                   allow_credentials=True, 
+                   allow_methods=["*"],
+                   allow_headers=["*"]
+        ),
+        Middleware(SessionMiddleware, secret_key=getattr(settings, "secret_key", secrets.token_hex(32)))
+    ],
+    routes=[]
 )
+
+# Initialize Prometheus Metrics
+Instrumentator().instrument(app).expose(app)
 
 fastapi_swagger_dark.install(app)
 
-from fastapi.middleware.gzip import GZipMiddleware
-
-app.add_middleware(
-    GZipMiddleware,
-    minimum_size=1000
-)
-
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    print("VALIDATION ERROR:", exc.errors())
-    print("BODY:", exc.body)
+    logger.error("validation_error", errors=exc.errors(), body=exc.body)
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=secrets.token_hex(32)
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], # Should be restricted in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 app.include_router(auth.router)
 app.include_router(serotype.router)
 
 @app.get("/api/version")
 def get_version():
-    return {"version": __version__}
+    return {"version": _VERSION}
 
 @app.get("/api/about")
 def get_about():
-    from importlib.metadata import metadata
-    import os
-    
-    content = ""
-    readme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "README.md")
-    if os.path.exists(readme_path):
-        with open(readme_path, "r", encoding="utf-8") as f:
-            content = f.read()
-    else:
-        try:
-            content = metadata("kaptive-web").get("Description", "")
-        except Exception:
-            content = "# About\nNo information found."
-            
     # Fix the logo path so the web frontend can load it correctly from the static mount
-    content = content.replace('src="docs/assets/logo.png"', 'src="logo.png"')
-    content = content.replace('src="src/kaptive_web/frontend/logo.png"', 'src="logo.png"')
-    
-    return {"content": content}
+    return {"content": _DESCRIPTION.replace('src="src/kaptive_web/frontend/logo.png"', 'src="logo.png"')}
+
 
 # Mount the static frontend
-frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
-app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+app.mount("/", StaticFiles(directory=Path(__file__).parent / "frontend", html=True), name="frontend")
 
 
+# CLI entry point ------------------------------------------------------------------------------------------------------
 def cli():
-    from argparse import ArgumentParser
-
-
-    # Define args ------------------------------------------------------------------------------------------------------
-    parser = ArgumentParser(description='Web interface for Kaptive, the tool for in silico serotyping.', prog='kaptive-web')
+    parser = argparse.ArgumentParser(description=_SUMMARY)
     parser.add_argument('-H', '--host', default='127.0.0.1', metavar='STR')
     parser.add_argument('-p', '--port', type=int, default=8000, metavar='INT')
     parser.add_argument('-r', '--reload', action='store_true', default=False)
-    parser.add_argument("-v", "--version", action="version", version=__version__, help="Show version number and exit")
+    parser.add_argument('-v', '--version', action='version', version=_VERSION,
+                        help='Show version number and exit')
 
-    # Parse args -------------------------------------------------------------------------------------------------------
     args = parser.parse_args()
 
-    # Run app ----------------------------------------------------------------------------------------------------------
-    import uvicorn
-    
-    uvicorn.run(app, host=args.host, port=args.port, reload=args.reload)
+    # Configure logging before starting the server
+    setup_logging(is_dev_mode=args.reload)
+
+    # Uvicorn requires an import string to use the reload feature
+    app_target = "kaptive_web.main:app" if args.reload else app
+    uvicorn.run(app_target, host=args.host, port=args.port, reload=args.reload, log_config=None)
+
+if __name__ == "__main__":
+    cli()

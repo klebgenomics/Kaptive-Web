@@ -1,50 +1,50 @@
+import structlog
 from kaptive.db import Database, DatabaseManager
-from kaptive.serotyping import Serotyper, ConfidenceEvaluator
+from kaptive.serotyping import Serotyper
+
 from kaptive_web.core.config import settings
 
-class AppState:
-    def __init__(self):
-        # We store shared Database objects grouped by organism.
-        # Example: self.databases["Klebsiella pneumoniae Species Complex"]["kpsc_k"] = Database(...)
-        self.databases: dict[str, dict[str, Database]] = {}
-        # We store serotyper pipelines grouped by organism.
-        self.pipelines: dict[str, dict[str, Serotyper]] = {}
-        # Evaluators per organism
-        self.evaluators: dict[str, ConfidenceEvaluator] = {}
+# Globals --------------------------------------------------------------------------------------------------------------
+logger = structlog.get_logger(__name__)
 
-    def init_all(self):
+
+# Classes --------------------------------------------------------------------------------------------------------------
+class AppState:
+    # We store shared Database objects grouped by organism.
+    # Example: self.databases["Klebsiella pneumoniae Species Complex"]["kpsc_k"] = Database(...)
+    databases: dict[str, dict[str, Database]] = {}
+    # We store serotyper pipelines grouped by organism.
+    serotypers: dict[str, dict[str, Serotyper]] = {}
+    
+    @classmethod
+    def load_databases(cls) -> None:
         """Discovers and initializes all installed databases."""
+        logger.info("Discovering and loading databases into memory...")
         installed_kwds = DatabaseManager.installed()
-        print(f"Found {len(installed_kwds)} installed databases.")
-        
+        logger.info(f"Found {len(installed_kwds)} installed databases.")
+
         for kwd in installed_kwds:
             try:
                 db = DatabaseManager.load(kwd)
                 organism = db.metadata.organism
-                
                 # Initialize organism dictionaries if they don't exist
-                if organism not in self.databases:
-                    self.databases[organism] = {}
-                    self.pipelines[organism] = {}
-                    self.evaluators[organism] = ConfidenceEvaluator()
-                
+                if organism not in cls.databases:
+                    cls.databases[organism] = {}
+                    cls.serotypers[organism] = {}
                 # Cache the database and its initialized Serotyper instance
-                self.databases[organism][kwd] = db
-                self.pipelines[organism][kwd] = Serotyper(db, max_workers=settings.max_pipeline_workers)
-                print(f"Initialized pipeline for {organism}: {kwd}")
-                
+                cls.databases[organism][kwd] = db
+                cls.serotypers[organism][kwd] = Serotyper(db, max_workers=settings.max_pipeline_workers)
+                logger.info(f"Initialized Serotyper for {organism}: {kwd}")
+
             except Exception as e:
-                print(f"Failed to load database {kwd}: {e}")
+                logger.exception(f"Failed to load database {kwd}: {e}")
 
-    def get_pipeline(self, species: str) -> dict[str, Serotyper]:
+        logger.info("Initialization complete.")
+
+    @classmethod
+    def get_serotypers(cls, species: str) -> dict[str, Serotyper]:
         """Returns the serotyper instances for the requested species."""
-        if species not in self.pipelines:
-            raise KeyError(f"No pipeline initialized for species: {species}")
-        return self.pipelines[species]
+        if species not in cls.serotypers:
+            raise KeyError(f"No Serotypers initialized for species: {species}")
+        return cls.serotypers[species]
 
-    def get_evaluator(self, species: str) -> ConfidenceEvaluator:
-        if species not in self.evaluators:
-            raise KeyError(f"No evaluator initialized for species: {species}")
-        return self.evaluators[species]
-
-state = AppState()

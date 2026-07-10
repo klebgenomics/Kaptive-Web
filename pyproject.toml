@@ -24,6 +24,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
     "Typing :: Typed",
 ]
+
 dependencies = [
     "kaptive[plot,json]>=3.3.0",
     "fastapi[standard]",
@@ -34,14 +35,26 @@ dependencies = [
     "httpx2>=2.5.0",
     "itsdangerous>=2.2.0",
     "fastapi-swagger-dark>=0.0.9",
+    "prometheus-fastapi-instrumentator>=8.0.2",
+    "structlog>=26.1.0",
+    "opentelemetry-api>=1.43.0",
+    "opentelemetry-sdk>=1.43.0",
+    "opentelemetry-instrumentation-fastapi>=0.64b0",
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "ruff>=0.15.20",
+    "ty>=0.0.57",
 ]
 
 [project.urls]
 Homepage = "https://kaptive-web.erc.monash.edu/"
-Documentation = "https://tomdstanton.github.io/kaptive-web"
-Repository = "https://github.com/tomdstanton/Kaptive-Web.git"
-Issues = "https://github.com/tomdstanton/Kaptive-Web/issues"
-Changelog = "https://github.com/tomdstanton/Kaptive-Web/blob/master/CHANGELOG.md"
+Documentation = "https://klebgenomics.github.io/kaptive-web"
+Repository = "https://github.com/klebgenomics/Kaptive-Web"
+Issues = "https://github.com/klebgenomics/Kaptive-Web/issues"
+Changelog = "https://github.com/klebgenomics/Kaptive-Web/blob/master/CHANGELOG.md"
 
 [project.scripts]
 # This creates a terminal command you can run anywhere after installing

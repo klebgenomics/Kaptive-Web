@@ -194,6 +194,16 @@ class KaptiveAPI {
         if (!res.ok) throw new Error(`API Error: ${res.status}`);
         return await res.json();
     }
+
+    async deleteResults(genomeIds) {
+        const res = await fetch(`${this.baseUrl}/serotype/results/delete`, {
+            method: 'POST',
+            headers: this.getHeaders(),
+            body: JSON.stringify({ genome_ids: genomeIds })
+        });
+        if (!res.ok) throw new Error(`Delete Error: ${res.status}`);
+        return await res.json();
+    }
 }
 
 // Export a singleton

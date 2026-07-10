@@ -4,7 +4,7 @@ from fastapi.security import APIKeyHeader
 from authlib.integrations.starlette_client import OAuthError
 
 from kaptive_web.core.config import settings
-from kaptive_web.core.auth import oauth, generate_api_key
+from kaptive_web.core.auth import Authorizer
 from kaptive_web.db.repository import Repository, User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -38,7 +38,7 @@ async def handle_user_login(repo: Repository, scoped_id: str):
     """Helper method to check the DB, generate API keys, and redirect."""
     user = await repo.get_user_by_id(scoped_id)
     if not user:
-        api_key = generate_api_key()
+        api_key = Authorizer.generate_api_key()
         await repo.create_user(scoped_id, api_key)
         return RedirectResponse(f"/?api_key={api_key}")
     else:
@@ -49,13 +49,13 @@ async def handle_user_login(repo: Repository, scoped_id: str):
 async def orcid_login(request: Request):
     """Redirects the user to ORCID for authentication."""
     redirect_uri = str(request.url_for("orcid_callback"))
-    return await oauth.orcid.authorize_redirect(request, redirect_uri)
+    return await Authorizer.oauth.orcid.authorize_redirect(request, redirect_uri)
 
 @router.get("/orcid/callback")
 async def orcid_callback(request: Request, repo: Repository = Depends(get_repository)):
     """Handles the ORCID OAuth2 callback."""
     try:
-        token = await oauth.orcid.authorize_access_token(request)
+        token = await Authorizer.oauth.orcid.authorize_access_token(request)
         
         # ORCID's token response includes the 'orcid' ID and 'name' directly
         orcid_str = token.get("orcid")
@@ -78,16 +78,16 @@ async def orcid_callback(request: Request, repo: Repository = Depends(get_reposi
 async def github_login(request: Request):
     """Redirects the user to GitHub for authentication."""
     redirect_uri = str(request.url_for("github_callback"))
-    return await oauth.github.authorize_redirect(request, redirect_uri)
+    return await Authorizer.oauth.github.authorize_redirect(request, redirect_uri)
 
 @router.get("/github/callback")
 async def github_callback(request: Request, repo: Repository = Depends(get_repository)):
     """Handles the GitHub OAuth2 callback."""
     try:
-        token = await oauth.github.authorize_access_token(request)
+        token = await Authorizer.oauth.github.authorize_access_token(request)
         
         # For GitHub, we use the token to fetch the user profile
-        resp = await oauth.github.get('user', token=token)
+        resp = await Authorizer.oauth.github.get('user', token=token)
         resp.raise_for_status()
         user_data = resp.json()
         

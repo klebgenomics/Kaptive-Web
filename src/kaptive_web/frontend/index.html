@@ -152,7 +152,10 @@
 
                         <div class="upload-actions">
                             <span id="file-count">0 files selected</span>
-                            <button id="start-run-btn" class="btn btn-primary" disabled><i data-lucide="play" style="width: 16px; height: 16px;"></i> Serotype!</button>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <input type="text" id="run-name-input" class="form-input" placeholder="Name this run (optional)" style="width: 200px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; color: var(--text-color); border-radius: 4px;">
+                                <button id="start-run-btn" class="btn btn-primary" disabled><i data-lucide="play" style="width: 16px; height: 16px;"></i> Serotype!</button>
+                            </div>
                         </div>
 
                         <!-- Lock Overlay -->
@@ -185,9 +188,18 @@
                         <div class="toolbar-actions" style="display: flex; align-items: center; gap: 1rem;">
                             <span id="selection-tally" style="font-size: 0.85rem; color: var(--text-muted);">0 genomes
                                 selected</span>
-                            <button id="download-tsv-btn" class="btn btn-secondary"><i data-lucide="download" style="width: 16px; height: 16px;"></i> Download TSV</button>
-                            <button id="download-json-btn" class="btn btn-secondary"><i data-lucide="download" style="width: 16px; height: 16px;"></i> Download JSON</button>
-                            <button id="compare-btn" class="btn btn-primary" disabled><i data-lucide="git-compare" style="width: 16px; height: 16px;"></i> Compare</button>
+                            <div class="dropdown">
+                                <button id="options-dropdown-btn" class="btn btn-secondary">
+                                    Options <i data-lucide="chevron-down" style="width: 16px; height: 16px; margin-left: 4px;"></i>
+                                </button>
+                                <div id="options-dropdown-menu" class="dropdown-content">
+                                    <button id="download-tsv-btn" class="dropdown-item"><i data-lucide="download" style="width: 16px; height: 16px;"></i> Download TSV</button>
+                                    <button id="download-pha4ge-btn" class="dropdown-item"><i data-lucide="download" style="width: 16px; height: 16px;"></i> Download Pha4ge</button>
+                                    <button id="download-json-btn" class="dropdown-item"><i data-lucide="download" style="width: 16px; height: 16px;"></i> Download JSON</button>
+                                    <button id="compare-btn" class="dropdown-item" disabled><i data-lucide="git-compare" style="width: 16px; height: 16px;"></i> Compare</button>
+                                    <button id="delete-selected-btn" class="dropdown-item danger"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i> Delete Selected</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

@@ -1,7 +1,10 @@
-import orjson
-from starlette.responses import JSONResponse
 from typing import Any
 
+import orjson
+from starlette.responses import JSONResponse
+
+
+# Classes --------------------------------------------------------------------------------------------------------------
 class KaptiveORJSONResponse(JSONResponse):
     """
     A custom JSONResponse that specifically serializes NumPy arrays and dataclasses 
