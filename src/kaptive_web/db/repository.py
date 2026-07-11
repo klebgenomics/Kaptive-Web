@@ -1,9 +1,9 @@
-import structlog
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
 
 import aiosqlite
+import structlog
 
 # Globals --------------------------------------------------------------------------------------------------------------
 logger = structlog.get_logger(__name__)
@@ -190,6 +190,11 @@ class Repository:
         async with self.db.execute("SELECT * FROM run_results WHERE run_id = ?", (run_id,)) as cursor:
             rows = await cursor.fetchall()
             return [self._map_result(row) for row in rows]
+
+    async def count_run_results(self, run_id: str) -> int:
+        async with self.db.execute("SELECT COUNT(*) FROM run_results WHERE run_id = ?", (run_id,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
 
     async def get_all_results_for_user(self, user_id: str) -> list[RunResult]:
         async with self.db.execute('''

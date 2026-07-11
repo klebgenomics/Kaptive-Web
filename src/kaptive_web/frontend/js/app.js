@@ -196,17 +196,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             downloadPha4geBtn.innerHTML = originalText;
         });
     }
-    
-    const downloadPha4geBtn = document.getElementById('download-pha4ge-btn');
-    if (downloadPha4geBtn) {
-        downloadPha4geBtn.addEventListener('click', async () => {
-            downloadPha4geBtn.disabled = true;
-            downloadPha4geBtn.textContent = 'Downloading...';
-            await triggerDownload('/serotype/results/download/pha4ge', 'tsv');
-            downloadPha4geBtn.disabled = false;
-            downloadPha4geBtn.textContent = '📥 Download Pha4ge';
-        });
-    }
 
     const deleteSelectedBtn = document.getElementById('delete-selected-btn');
     if (deleteSelectedBtn) {
@@ -228,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 selectedGenomes.clear();
                 
                 // Re-render
-                applySortAndFilter();
+                applyFilters();
             } catch (err) {
                 alert("Failed to delete results: " + err.message);
             } finally {
@@ -482,6 +471,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetch('/api/about').then(r => r.json()).then(data => {
                 if (window.marked) {
                     document.getElementById('about-content').innerHTML = marked.parse(data.content || "No content");
+                    const mermaidBlocks = document.querySelectorAll('#about-content pre code.language-mermaid');
+                    if (mermaidBlocks.length > 0) {
+                        const loadMermaid = () => {
+                            if (window.mermaid) return Promise.resolve(window.mermaid);
+                            return new Promise((resolve, reject) => {
+                                const script = document.createElement('script');
+                                script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js';
+                                script.onload = () => resolve(window.mermaid);
+                                script.onerror = reject;
+                                document.head.appendChild(script);
+                            });
+                        };
+                        
+                        loadMermaid().then((mermaidObj) => {
+                            mermaidBlocks.forEach(block => {
+                                const pre = block.parentNode;
+                                const container = document.createElement('div');
+                                container.className = 'mermaid';
+                                container.textContent = block.textContent;
+                                pre.parentNode.replaceChild(container, pre);
+                            });
+                            mermaidObj.run({ querySelector: '.mermaid' }).catch(e => console.error("Mermaid init error:", e));
+                        }).catch(e => console.error("Failed to load mermaid:", e));
+                    }
                 } else {
                     document.getElementById('about-content').innerHTML = `<pre>${data.content}</pre>`;
                 }
@@ -765,7 +778,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             fileCountDisplay.textContent = "0 files selected";
             if (runNameInput) runNameInput.value = "";
             fileInput.value = "";
-            startRunBtn.textContent = "✨ Serotype!";
+            startRunBtn.textContent = "✨ phenotype!";
 
             switchTab('analysis-tab');
             startPolling(res.run_id);
@@ -773,7 +786,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             alert("Upload failed: " + e.message);
             startRunBtn.disabled = false;
-            startRunBtn.textContent = "✨ Serotype!";
+            startRunBtn.textContent = "✨ phenotype!";
         }
     });
 
@@ -882,7 +895,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             superHeaders += `<th colspan="4" class="db-header ${colorClass}">${db.name}</th>`;
             subHeaders += `
                 <th class="filterable" data-col="db_${db.key}_locus"><div class="th-content"><span>Locus</span><span class="filter-icon">▼</span></div></th>
-                <th class="filterable" data-col="db_${db.key}_serotype"><div class="th-content"><span>Phenotype</span><span class="filter-icon">▼</span></div></th>
+                <th class="filterable" data-col="db_${db.key}_phenotype"><div class="th-content"><span>Phenotype</span><span class="filter-icon">▼</span></div></th>
                 <th class="filterable" data-col="db_${db.key}_confidence"><div class="th-content"><span>Confidence</span><span class="filter-icon">▼</span></div></th>
                 <th>View</th>
             `;
@@ -952,7 +965,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 trHtml += `
                     <td>${escapeHtml(dbData.best_locus_name || '-')}</td>
                     <td><span class="badge ${badgeClass}">${escapeHtml(dbData.phenotype || '-')}</span></td>
-                    <td>${dbData.is_typeable !== undefined ? (dbData.is_typeable ? 'Typeable' : 'Untypeable') : '-'}</td>
+                    <td>${dbData.typeable !== undefined ? (dbData.typeable ? 'Typeable' : 'Untypeable') : '-'}</td>
                     <td>${dbData.best_locus_name ? `<button class="btn btn-secondary btn-icon view-btn" data-run="${escapeHtml(res.run_id)}" data-genome="${escapeHtml(res.genome_id)}" data-db="${escapeHtml(db.key)}" title="View Details"><i data-lucide="search" style="width: 16px; height: 16px; margin-right: 4px;"></i> View</button>` : '-'}</td>
                 `;
             });
@@ -1044,13 +1057,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (colId.startsWith('db_')) {
             const parts = colId.split('_');
             const dbKey = parts[1] + '_' + parts[2]; // e.g. db_ab_k_locus -> ab_k
-            const field = parts[3]; // locus, serotype, confidence
+            const field = parts[3]; // locus, phenotype, confidence
 
             const dbData = res.databases[dbKey] || {};
             if (field === 'locus') return dbData.best_locus_name || '-';
-            if (field === 'serotype') return dbData.phenotype || '-';
+            if (field === 'phenotype') return dbData.phenotype || '-';
             if (field === 'confidence') {
-                return dbData.is_typeable !== undefined ? (dbData.is_typeable ? 'Typeable' : 'Untypeable') : '-';
+                return dbData.typeable !== undefined ? (dbData.typeable ? 'Typeable' : 'Untypeable') : '-';
             }
         }
         return '-';

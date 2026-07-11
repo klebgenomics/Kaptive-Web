@@ -334,7 +334,7 @@ a:hover {
     right: 0;
     top: calc(100% + 4px);
     background-color: var(--glass-bg);
-    min-width: 180px;
+    min-width: 200px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
     z-index: 100;
     border: 1px solid var(--glass-border);
@@ -364,6 +364,7 @@ a:hover {
     text-align: left;
     font-size: 0.9rem;
     font-family: inherit;
+    white-space: nowrap;
 }
 
 .dropdown-item:hover {

@@ -24,7 +24,23 @@ services:
     volumes:
       - kaptive_data:/app/data
 
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+    depends_on:
+      - kaptive-web
+
 volumes:
   caddy_data:
   caddy_config:
   kaptive_data:
+  prometheus_data:

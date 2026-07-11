@@ -191,10 +191,11 @@ async def list_runs(
 @router.get("/runs/{run_id}", response_class=KaptiveORJSONResponse)
 async def get_run_results(
     run_id: str,
+    include_results: bool = False,
     current_user: User = Depends(get_current_user),
     repo: Repository = Depends(get_repository),
 ):
-    """Fetches the status and detailed results for a specific run."""
+    """Fetches the status and optionally detailed results for a specific run."""
     run = await repo.get_run(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="Run not found.")
@@ -202,19 +203,32 @@ async def get_run_results(
     if run.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this run.")
 
+    if not include_results:
+        count = await repo.count_run_results(run_id)
+        meta = {
+            "run_id": run.id,
+            "status": run.status,
+            "species": run.species,
+            "created_at": run.created_at,
+            "total_genomes": run.total_genomes,
+            "completed_genomes": count
+        }
+        return Response(content=dumps(meta), media_type="application/json")
+
     results = await repo.get_run_results(run_id)
 
     # Manually construct JSON using lightning-fast byte concatenation
-    json_parts = []
-    for res in results:
-        genome_id_bytes = dumps(res.genome_id)
-        json_parts.append(b"%b: %b" % (genome_id_bytes, res.results_json))
-
-    results_bytes = b"{%b}" % b",".join(json_parts)
+    results_bytes = b"{%b}" % b",".join(b"%b: %b" % (dumps(r.genome_id), r.results_json) for r in results)
     
     # Construct metadata bytes, strip the closing '}', and attach our results mapping
-    meta = {"run_id": run.id, "status": run.status, "species": run.species, "created_at": run.created_at, 
-            "total_genomes": run.total_genomes, "completed_genomes": len(results)}
+    meta = {
+        "run_id": run.id,
+        "status": run.status,
+        "species": run.species,
+        "created_at": run.created_at,
+        "total_genomes": run.total_genomes,
+        "completed_genomes": len(results)
+    }
     meta_bytes = dumps(meta)
     final_bytes = b'%b, "results": %b}' % (meta_bytes[:-1], results_bytes)
 
@@ -275,35 +289,6 @@ async def get_summary(result_obj=Depends(get_target_serotyping_result)):
     """Generates a text summary for the frontend."""
     return {"summary": result_obj.to_summary()}
 
-
-@router.get("/runs/{run_id}/download/json")
-async def download_run_json(
-    run_id: str,
-    current_user: User = Depends(get_current_user),
-    repo: Repository = Depends(get_repository),
-):
-    """Generates a downloadable results.json file for a run using orjson."""
-    run = await repo.get_run(run_id)
-    if not run or run.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized or run not found.")
-
-    results = await repo.get_run_results(run_id)
-
-    # Construct raw bytes map
-    json_parts = []
-    for res in results:
-        genome_id_bytes = dumps(res.genome_id)
-        json_parts.append(b"%b: %b" % (genome_id_bytes, res.results_json))
-
-    json_bytes = b"{\n  %b\n}" % b",\n  ".join(json_parts)
-
-    return Response(
-        content=json_bytes,
-        media_type="application/json",
-        headers={
-            "Content-Disposition": f'attachment; filename="results_{run_id}.json"'
-        },
-    )
 
 
 # Router POST ----------------------------------------------------------------------------------------------------------
@@ -455,7 +440,7 @@ async def download_tsv(
         for res in results:
             for res_dict in loads(res.results_json).values():
                 res_obj = SerotypingResult.from_dict(res_dict)
-                yield bytes(KaptiveRow.from_result(res_obj))
+                yield bytes(KaptiveRow.from_result(res_obj))  # KaptiveRow has a __bytes__() method
 
     return StreamingResponse(
         content=iter_tsv(),
@@ -480,7 +465,7 @@ async def download_pha4ge(
         for res in results:
             for res_dict in loads(res.results_json).values():
                 res_obj = SerotypingResult.from_dict(res_dict)
-                yield bytes(Pha4geRow.from_result(res_obj))
+                yield bytes(Pha4geRow.from_result(res_obj))  # Pha4geRow has a __bytes__() method
 
     return StreamingResponse(
         content=iter_tsv(),

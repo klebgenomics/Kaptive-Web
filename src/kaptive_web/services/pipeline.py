@@ -1,14 +1,14 @@
 import asyncio
 import dataclasses
-import structlog
 from datetime import datetime
 from pathlib import Path
 
+import structlog
 from kaptive.core.genome import GenomeAssembly
 from orjson import OPT_SERIALIZE_NUMPY, dumps
 
 from kaptive_web.core.config import settings
-from kaptive_web.core.state import state
+from kaptive_web.core.state import AppState
 from kaptive_web.db.repository import Repository
 
 # Globals --------------------------------------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ async def process_genomes(run_id: str, species: str, file_paths: list[Path]):
         await repo.update_run_status(run_id, "RUNNING")
         
         # Get the pipeline for the requested species
-        pipeline_dict = state.get_serotypers(species)
+        pipeline_dict = AppState.get_serotypers(species)
         
         for file_path in file_paths:
             try:
