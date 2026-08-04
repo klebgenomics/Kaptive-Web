@@ -1,12 +1,13 @@
+"""Logging configuration module."""
+
 import logging
 import sys
 
 import structlog
 
-def setup_logging(is_dev_mode: bool = False):
-    """
-    Configure Structlog and hijack standard logging for Uvicorn and FastAPI.
-    """
+
+def setup_logging(is_dev_mode: bool = False) -> None:
+    """Configure Structlog and hijack standard logging for Uvicorn and FastAPI."""
     # 1. Clear existing handlers on root logger
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
@@ -14,9 +15,11 @@ def setup_logging(is_dev_mode: bool = False):
 
     # 2. Add standard logging handler that bridges to structlog
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(structlog.stdlib.ProcessorFormatter(
-        processor=structlog.dev.ConsoleRenderer(colors=True) if is_dev_mode else structlog.processors.JSONRenderer()
-    ))
+    handler.setFormatter(
+        structlog.stdlib.ProcessorFormatter(
+            processor=structlog.dev.ConsoleRenderer(colors=True) if is_dev_mode else structlog.processors.JSONRenderer()
+        )
+    )
     root_logger.addHandler(handler)
 
     # 3. Configure Structlog

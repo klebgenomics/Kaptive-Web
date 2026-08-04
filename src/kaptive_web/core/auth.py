@@ -1,3 +1,5 @@
+"""Authentication core module."""
+
 import secrets
 import sys
 
@@ -6,11 +8,13 @@ from authlib.integrations.starlette_client import OAuth
 
 from kaptive_web.core.config import settings
 
-sys.modules['httpx'] = httpx2  # When Authlib looks for 'httpx', it gets 'httpx2'
+sys.modules["httpx"] = httpx2  # When Authlib looks for 'httpx', it gets 'httpx2'
 
 
 # Classes --------------------------------------------------------------------------------------------------------------
 class Authorizer:
+    """OAuth and API Key authorizer class."""
+
     oauth = OAuth()
 
     # Configure GitHub
@@ -39,8 +43,6 @@ class Authorizer:
 
     @classmethod
     def generate_api_key(cls) -> str:
-        """
-        Generates a secure API key.
-        """
+        """Generates a secure API key."""
         random_part = secrets.token_urlsafe(settings.api_key_length)
         return f"{settings.api_key_prefix}{random_part}"

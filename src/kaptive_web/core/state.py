@@ -1,8 +1,8 @@
+"""State module."""
+
 import structlog
 from kaptive.db import Database, DatabaseManager
 from kaptive.serotyping import Serotyper
-
-from kaptive_web.core.config import settings
 
 # Globals --------------------------------------------------------------------------------------------------------------
 logger = structlog.get_logger(__name__)
@@ -10,12 +10,14 @@ logger = structlog.get_logger(__name__)
 
 # Classes --------------------------------------------------------------------------------------------------------------
 class AppState:
+    """Application state manager."""
+
     # We store shared Database objects grouped by organism.
     # Example: self.databases["Klebsiella pneumoniae Species Complex"]["kpsc_k"] = Database(...)
     databases: dict[str, dict[str, Database]] = {}
     # We store serotyper pipelines grouped by organism.
     serotypers: dict[str, dict[str, Serotyper]] = {}
-    
+
     @classmethod
     def load_databases(cls) -> None:
         """Discovers and initializes all installed databases."""
@@ -33,7 +35,7 @@ class AppState:
                     cls.serotypers[organism] = {}
                 # Cache the database and its initialized Serotyper instance
                 cls.databases[organism][kwd] = db
-                cls.serotypers[organism][kwd] = Serotyper(db, max_workers=settings.max_pipeline_workers)
+                cls.serotypers[organism][kwd] = Serotyper(db)
                 logger.info(f"Initialized Serotyper for {organism}: {kwd}")
 
             except Exception as e:
@@ -47,4 +49,3 @@ class AppState:
         if species not in cls.serotypers:
             raise KeyError(f"No Serotypers initialized for species: {species}")
         return cls.serotypers[species]
-

@@ -1,4 +1,4 @@
-# Kaptive Project Justfile
+# Kaptive-Web Project Justfile
 # Run `just` to see all available commands
 
 set shell := ["bash", "-c"]
@@ -15,16 +15,48 @@ sync:
 test: sync
     uv run pytest tests/
 
-# Clean Python virtual environments
+# Update dependencies and lockfile
+update:
+    uv lock --upgrade
+    uv sync
+
+# Clean caches and temporary files
 clean:
-    rm -f kaptive_web.db 
-    rm -rf .venv
+    rm -rf .ruff_cache
     find . -type d -name "__pycache__" -exec rm -rf {} +
     find . -type d -name ".pytest_cache" -exec rm -rf {} +
+    find . -type f -name "*.pyc" -delete
+
+# Deep clean including the virtual environment and database
+clean-all: clean
+    rm -f kaptive_web.db 
+    rm -rf .venv
+
+# Format all Python code
+fmt:
+    uvx ruff format .
+
+# Check if code is formatted without modifying files
+fmt-check:
+    uvx ruff format --check .
+
+# Lint Python code and auto-fix safe errors
+lint:
+    uvx ruff check --fix .
+
+# Static type-check Python code
+type-check:
+    uvx ty check .
+
+# Run all quality checks at once (ideal for local pre-commit testing)
+check-all: fmt-check lint type-check
+
+# Run the full CI pipeline locally
+ci: check-all test
 
 # Run the local development server using uvicorn
 serve: sync
-    uv run uvicorn kaptive_web.main:app --reload --host 127.0.0.1 --port 8000
+    uv run python -m kaptive_web.main --reload --host 127.0.0.1 --port 8000
 
 # Build the standalone Docker image
 docker-build:

@@ -1,6 +1,6 @@
 [project]
 name = "kaptive-web"
-description = "Web interface for Kaptive, the tool for in silico serotyping."
+description = "Web interface for Kaptive, the tool for _in silico_ serotyping"
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [{ name = "Tom Stanton", email = "tomdstanton@gmail.com" }]
 dynamic = ["version"]
@@ -26,7 +26,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "kaptive[plot,json]>=3.3.0",
+    "kaptive[plot,json]>=3.3.1",
     "fastapi[standard]",
     "uvicorn[standard]",
     "aiosqlite>=0.22.1",
@@ -34,7 +34,6 @@ dependencies = [
     "authlib>=1.7.2",
     "httpx2>=2.5.0",
     "itsdangerous>=2.2.0",
-    "fastapi-swagger-dark>=0.0.9",
     "prometheus-fastapi-instrumentator>=8.0.2",
     "structlog>=26.1.0",
     "opentelemetry-api>=1.43.0",
@@ -43,10 +42,9 @@ dependencies = [
 ]
 
 [dependency-groups]
+test = ["pytest>=9.0.0", "pytest-cov"]
 dev = [
-    "black>=26.5.1",
-    "ruff>=0.15.20",
-    "ty>=0.0.57",
+    { include-group = "test" },
 ]
 
 [project.urls]
@@ -81,9 +79,17 @@ testpaths = ["tests", "src"]
 
 [tool.ruff]
 line-length = 120
+exclude = [".agents", ".git", ".venv", "__pycache__", "src/kaptive_web/_version.py"]
 target-version = "py311"
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP"]
 
-[tool.uv.sources]
-kaptive = { path = "../Kaptive", editable = true }
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "D"]
+extend-select = ["ANN", "PYI"]
+preview = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ty.rules]
+missing-type-argument = "error"
+possibly-unresolved-reference = "warn"

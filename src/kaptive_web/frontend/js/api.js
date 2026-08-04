@@ -166,7 +166,7 @@ class KaptiveAPI {
         return data;
     }
 
-    async startComparison(runId, genomeIds, dbKey, showAllLinks = false, darkMode = false) {
+    async startComparison(runId, genomeIds, dbKey, showAllLinks = false, darkMode = false, referenceLoci = []) {
         const res = await fetch(`${this.baseUrl}/serotype/compare`, {
             method: 'POST',
             headers: {
@@ -178,7 +178,8 @@ class KaptiveAPI {
                 genome_ids: genomeIds,
                 database_key: dbKey,
                 show_all_links: showAllLinks,
-                dark_mode: darkMode
+                dark_mode: darkMode,
+                reference_loci: referenceLoci
             })
         });
         if (!res.ok) {

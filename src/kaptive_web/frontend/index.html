@@ -4,18 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaptive Web | In Silico Serotyping</title>
+    <title>Kaptive Web | <em>In Silico</em> Serotyping</title>
     <!-- Modern premium font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=3">
+    <link rel="stylesheet" href="css/styles.css?v=6">
 
     <!-- Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     
     <!-- Marked.js for markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Tom Select for advanced dropdowns -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -55,7 +59,7 @@
                 </a>
             </div>
             <div class="guest-action" style="margin-top: 1rem;">
-                <button id="guest-btn" class="btn btn-ghost">Continue as Guest (View-Only)</button>
+                <button id="guest-btn" class="btn btn-ghost"><i data-lucide="user" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Continue as Guest (View-Only)</button>
             </div>
         </div>
     </div>
@@ -108,7 +112,7 @@
                 <div class="user-profile">
                     <button id="settings-nav-btn" class="btn btn-icon btn-ghost hidden"
                         title="User Settings"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></button>
-                    <button id="login-nav-btn" class="btn btn-primary hidden">Login</button>
+                    <button id="login-nav-btn" class="btn btn-primary hidden"><i data-lucide="log-in" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Login</button>
                 </div>
             </div>
         </header>
@@ -118,6 +122,8 @@
 
             <!-- HOME TAB -->
             <div id="home-tab" class="tab-pane active">
+                
+
                 <div class="home-grid">
 
                     <!-- Databases Info -->
@@ -146,7 +152,7 @@
                                 <p style="margin-bottom: 1.25rem;">Select or drag FASTA files here.</p>
                                 <input type="file" id="file-input" multiple accept=".fasta,.fa,.fna,.fas,.gz,.bz2,.xz"
                                     hidden>
-                                <button id="browse-btn" class="btn btn-secondary">Browse Files</button>
+                                <button id="browse-btn" class="btn btn-secondary"><i data-lucide="file-search" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Browse Files</button>
                             </div>
                         </div>
 
@@ -231,12 +237,12 @@
                         </h3>
                         <div class="viewport-controls" style="display: flex; gap: 1rem; align-items: center;">
                             <div class="toggle-group" style="display: flex; background: var(--glass-panel-bg-light); border-radius: 6px; padding: 2px; border: 1px solid var(--glass-border);">
-                                <button id="view-plot-toggle" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border-radius: 4px; background: var(--glass-hover-bg);">Plot</button>
-                                <button id="view-summary-toggle" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border-radius: 4px;">Summary</button>
+                                <button id="view-plot-toggle" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border-radius: 4px; background: var(--glass-hover-bg);"><i data-lucide="bar-chart" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Plot</button>
+                                <button id="view-summary-toggle" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border-radius: 4px;"><i data-lucide="align-left" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Summary</button>
                             </div>
-                            <div style="display: flex;">
-                                <button id="toggle-maximize-btn" class="btn btn-icon" title="Maximize Viewport">⛶</button>
-                                <button id="close-viewport-btn" class="btn btn-icon" title="Close">✕</button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button id="toggle-maximize-btn" class="modal-close" title="Maximize Viewport">&#9974;</button>
+                                <button id="close-viewport-btn" class="modal-close" title="Close">&times;</button>
                             </div>
                         </div>
                     </div>
@@ -261,10 +267,8 @@
             </div>
 
             <!-- API DOCS TAB -->
-            <div id="api-tab" class="tab-pane" style="height: 100%;">
-                <div class="glass-panel" style="width: 100%; height: 100%; padding: 0; overflow: hidden;">
-                    <iframe src="/docs" style="width: 100%; height: 100%; border: none;"></iframe>
-                </div>
+            <div id="api-tab" class="tab-pane block-tab">
+                <iframe src="/docs" style="width: 100%; height: 100%; border: none; display: block;"></iframe>
             </div>
 
             <!-- ABOUT TAB -->
@@ -282,11 +286,20 @@
                 <span>© 2026 Tom Stanton</span>
                 <span>Licensed under GPLv3</span>
             </div>
-            <div style="text-align: center;">
+            <div style="text-align: center; display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                 <span>Kaptive-Web <span id="app-version" style="font-family: monospace; opacity: 0.8;"></span></span>
+                <span id="kaptive-version-wrapper" style="opacity: 0.8; display: none;">&bull; Kaptive <span id="kaptive-version" style="font-family: monospace;"></span></span>
             </div>
-            <div style="display: flex; justify-content: flex-end;">
-                <a href="https://github.com/tomdstanton/Kaptive-Web" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="View Source on GitHub">
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; align-items: center;">
+                <a href="mailto:kaptive.typing@gmail.com" style="color: var(--text-muted); transition: color 0.2s; display: flex;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="Email Kaptive">
+                    <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
+                </a>
+                <a href="https://pypi.org/project/kaptive" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); transition: color 0.2s; display: flex;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="View Kaptive on PyPI">
+                    <svg height="20" width="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.922 13.58v3.912L20.55 18.72l-.078.055.052.037 3.45-1.256.026-.036v-3.997l-.053-.036-.025.092z M23.621 5.618l-3.04 1.107v3.912l3.339-1.215V5.509zM23.92 13.457V9.544l-3.336 1.215v3.913zM20.47 14.71V10.8L17.17 12v3.913zM17.034 19.996v-3.912l-3.313 1.206v3.912zM17.17 16.057v3.868l3.314-1.206V14.85l-3.314 1.206zm2.093 1.882c-.367.134-.663-.074-.663-.463s.296-.814.663-.947c.365-.133.662.075.662.464s-.297.814-.662.946z M13.225 9.315l.365-.132-3.285-1.197-3.323 1.21.102.037 3.184 1.16zM20.507 10.664V6.751L17.17 7.965v3.913zM17.058 11.918V8.005l-3.302 1.202v3.912zM13.643 9.246l-3.336 1.215v3.913l3.336-1.215zM6.907 13.165l3.322 1.209v-3.913L6.907 9.252z M10.34 7.873l3.281 1.193V5.198l-3.28-1.193zM20.507 2.715L17.19 3.922v3.913l3.317-1.207zM16.95 3.903L13.724 2.73l-3.269 1.19 3.225 1.174zM15.365 4.606l-1.624.592v3.868l3.317-1.207V3.991l-1.693.615zm-.391 2.778c-.367.134-.662-.074-.662-.464s.295-.813.662-.946c.366-.133.663.074.663.464s-.297.813-.663.946z M10.229 18.41v-3.914l-3.322-1.209V17.2zM13.678 17.182v-3.913l-3.371 1.227v3.913z M13.756 17.154l3.3-1.2V12.04l-3.3 1.2zM13.678 21.217l-3.371 1.227v-3.912h-.078v3.912l-3.322-1.209v-3.913l-.053-.058-.025-.06-3.336-1.21v-3.948l.034.013 3.287 1.196.015-.078-3.261-1.187 3.26-1.187v-.109L3.876 9.62l-.307-.112 3.26-1.188v.877l.079-.055V6.769l3.257 1.185.058-.061L7.084 6.75l-.102-.037 3.24-1.179v-.083L6.854 6.677v.018l-.025.018v1.523L3.44 9.47v.02l-.025.017v4.007l-3.39 1.233v.019L0 14.784v3.995l.025.037 3.4 1.237.008-.006.007.01 3.4 1.238.008-.006.006.01 3.4 1.237.014-.009.012.01 3.45-1.256.026-.037-.078-.027zM3.493 9.563l3.257 1.185-3.257 1.187V9.562zM3.4 19.96L.078 18.752v-3.913l2.361.86.96.349v3.913zm.015-3.99L.335 14.85l-.182-.066 3.262-1.187v2.374zm3.399 5.231l-3.321-1.209v-3.912l3.321 1.209v3.912zM23.791 5.434l-3.21-1.17v2.338zM20.387 2.643l-3.24-1.18-3.27 1.19 3.247 1.182z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/tomdstanton/Kaptive-Web" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); transition: color 0.2s; display: flex;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="View Source on GitHub">
                     <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
                     </svg>
@@ -315,7 +328,7 @@
         <div class="glass-card" style="min-width: 400px; text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 style="margin: 0;">User Settings</h2>
-                <button id="close-settings-btn" class="btn btn-icon btn-ghost">✕</button>
+                <button id="close-settings-btn" class="modal-close" title="Close">&times;</button>
             </div>
 
             <div style="margin-bottom: 2rem;">
@@ -324,12 +337,12 @@
                     access via the REST API.</p>
                 <div style="display: flex; gap: 0.5rem;">
                     <input type="text" id="settings-api-key" class="form-input" style="flex: 1;" readonly>
-                    <button id="copy-api-key-btn" class="btn btn-secondary">Copy</button>
+                    <button id="copy-api-key-btn" class="btn btn-secondary"><i data-lucide="copy" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Copy</button>
                 </div>
             </div>
 
             <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem; padding-bottom: 1.5rem;">
-                <button id="logout-btn" class="btn btn-ghost" style="color: #ef4444; border: 1px solid #ef444455; transition: all 0.2s; width: 100%;" onmouseover="this.style.background='#ef444422'" onmouseout="this.style.background='transparent'">Logout</button>
+                <button id="logout-btn" class="btn btn-ghost" style="color: #ef4444; border: 1px solid #ef444455; transition: all 0.2s; width: 100%;" onmouseover="this.style.background='#ef444422'" onmouseout="this.style.background='transparent'"><i data-lucide="log-out" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Logout</button>
             </div>
 
             <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
@@ -337,7 +350,7 @@
                 <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">Permanently delete your account
                     and all associated serotyping run data.</p>
                 <button id="delete-account-btn" class="btn"
-                    style="background-color: #ff4d4f; color: white; width: 100%;">Delete Account & Data</button>
+                    style="background-color: #ff4d4f; color: white; width: 100%;"><i data-lucide="user-x" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Delete Account & Data</button>
             </div>
         </div>
     </div>
@@ -374,17 +387,40 @@
     </div>
 
     <!-- Compare Window (Floating) -->
-    <div id="compare-modal" class="detail-pane glass-panel hidden" style="top: 10vh; left: 10vw; bottom: auto; right: auto; width: 80vw; height: 80vh; max-width: 1200px; padding: 0; display: flex; flex-direction: column;">
+    <div id="compare-modal" class="detail-pane glass-panel hidden" style="padding: 0; display: flex; flex-direction: column; bottom: 40px; right: 40px; z-index: 1001;">
         <div class="modal-header" style="padding: 1rem 1.5rem; margin: 0; background: var(--glass-header-bg); border-bottom: 1px solid var(--glass-border);">
             <h2 style="margin: 0; font-size: 1.25rem;">Locus Comparison</h2>
             <div id="compare-db-buttons" style="display: flex; gap: 0.5rem; margin-left: 1rem;">
                 <!-- Database buttons populated dynamically -->
             </div>
+            
+            <div id="compare-locus-selection" class="hidden" style="display: flex; gap: 0.5rem; margin-left: 1rem; align-items: center; flex: 1;">
+                <div style="position: relative;">
+                    <button id="compare-locus-dropdown-btn" class="form-input" style="padding: 0.3rem 0.6rem; font-size: 0.85rem; min-width: 250px; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer; height: 100%;">
+                        <span id="compare-locus-dropdown-text">Select reference loci...</span> <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <div id="compare-locus-popover" class="glass-panel hidden" style="position: absolute; top: 100%; left: 0; z-index: 1000; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem; width: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 0.25rem;">
+                        <input type="text" id="compare-locus-search-input" class="form-input" placeholder="Search..." style="margin-bottom: 0.5rem; padding: 0.4rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem;">
+                            <a href="#" id="compare-locus-select-all" style="color: var(--primary);">Select All</a>
+                            <a href="#" id="compare-locus-clear-all" style="color: var(--text-muted);">Clear</a>
+                        </div>
+                        <div id="compare-locus-checkbox-list" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.85rem;">
+                            <!-- Checkboxes generated dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <button id="compare-loci-btn" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem; white-space: nowrap; display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="git-compare" style="width: 14px; height: 14px;"></i> Compare Loci</button>
+            </div>
+            
             <div style="flex: 1;"></div>
             <label style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1.5rem; cursor: pointer; font-size: 0.9rem;">
                 <input type="checkbox" id="compare-show-all-links"> Show all links
             </label>
-            <button class="modal-close" id="close-compare-modal">&times;</button>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="modal-close" id="maximize-compare-modal" title="Maximize">&#9974;</button>
+                <button class="modal-close" id="close-compare-modal" title="Close">&times;</button>
+            </div>
         </div>
         <div class="modal-body" style="flex: 1; min-height: 400px; display: flex; flex-direction: column; overflow: hidden; position: relative; padding: 1rem;">
             <div id="compare-loading" class="loading-overlay hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; border-radius: var(--radius-lg);">

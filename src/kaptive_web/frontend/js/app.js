@@ -9,9 +9,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Fetch and display version
     const verData = await api.getVersion();
-    if (verData && verData.version) {
-        const verSpan = document.getElementById('app-version');
-        if (verSpan) verSpan.textContent = `v${verData.version}`;
+    if (verData) {
+        if (verData.version) {
+            const verSpan = document.getElementById('app-version');
+            if (verSpan) verSpan.textContent = `v${verData.version}`;
+        }
+        if (verData.kaptive_version) {
+            const kaptiveVerSpan = document.getElementById('kaptive-version');
+            const kaptiveVerWrapper = document.getElementById('kaptive-version-wrapper');
+            if (kaptiveVerSpan) kaptiveVerSpan.textContent = `v${verData.kaptive_version}`;
+            if (kaptiveVerWrapper) kaptiveVerWrapper.style.display = 'inline';
+        }
     }
     // --- Elements ---
     // Theme elements
@@ -84,7 +92,108 @@ document.addEventListener('DOMContentLoaded', async () => {
     const compareBtn = document.getElementById('compare-btn');
     const compareModal = document.getElementById('compare-modal');
     const closeCompareModal = document.getElementById('close-compare-modal');
+    const maximizeCompareModal = document.getElementById('maximize-compare-modal');
     const compareDbButtonsContainer = document.getElementById('compare-db-buttons');
+    const compareLocusSelection = document.getElementById('compare-locus-selection');
+    const compareLocusDropdownBtn = document.getElementById('compare-locus-dropdown-btn');
+    const compareLocusDropdownText = document.getElementById('compare-locus-dropdown-text');
+    const compareLocusPopover = document.getElementById('compare-locus-popover');
+    const compareLocusSearchInput = document.getElementById('compare-locus-search-input');
+    const compareLocusSelectAll = document.getElementById('compare-locus-select-all');
+    const compareLocusClearAll = document.getElementById('compare-locus-clear-all');
+    const compareLocusCheckboxList = document.getElementById('compare-locus-checkbox-list');
+
+    let compareLocusOptions = [];
+
+    function getSelectedCompareLoci() {
+        if (!compareLocusCheckboxList) return [];
+        return Array.from(compareLocusCheckboxList.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+    }
+
+    function updateCompareLocusText() {
+        if (!compareLocusDropdownText) return;
+        const count = getSelectedCompareLoci().length;
+        if (count === 0) {
+            compareLocusDropdownText.textContent = 'Select reference loci...';
+        } else if (count === 1) {
+            compareLocusDropdownText.textContent = '1 locus selected';
+        } else {
+            compareLocusDropdownText.textContent = `${count} loci selected`;
+        }
+    }
+
+    function populateCompareLoci(lociNames) {
+        compareLocusOptions = lociNames;
+        renderCompareLoci();
+    }
+
+    function renderCompareLoci(searchQuery = '') {
+        if (!compareLocusCheckboxList) return;
+        compareLocusCheckboxList.innerHTML = '';
+        const lowerQuery = searchQuery.toLowerCase();
+        
+        compareLocusOptions.forEach(name => {
+            if (lowerQuery && !name.toLowerCase().includes(lowerQuery)) return;
+            
+            const label = document.createElement('label');
+            label.style.display = 'flex';
+            label.style.alignItems = 'center';
+            label.style.gap = '0.5rem';
+            label.style.cursor = 'pointer';
+            
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = name;
+            cb.addEventListener('change', updateCompareLocusText);
+            
+            label.appendChild(cb);
+            label.appendChild(document.createTextNode(name));
+            compareLocusCheckboxList.appendChild(label);
+        });
+        updateCompareLocusText();
+    }
+
+    if (compareLocusDropdownBtn && compareLocusPopover) {
+        compareLocusDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            compareLocusPopover.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!compareLocusPopover.contains(e.target) && !compareLocusDropdownBtn.contains(e.target)) {
+                compareLocusPopover.classList.add('hidden');
+            }
+        });
+
+        if (compareLocusSearchInput) {
+            compareLocusSearchInput.addEventListener('input', (e) => {
+                const currentSelections = new Set(getSelectedCompareLoci());
+                renderCompareLoci(e.target.value);
+                // Restore selections after render
+                compareLocusCheckboxList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    if (currentSelections.has(cb.value)) cb.checked = true;
+                });
+            });
+        }
+
+        if (compareLocusSelectAll) {
+            compareLocusSelectAll.addEventListener('click', (e) => {
+                e.preventDefault();
+                compareLocusCheckboxList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+                updateCompareLocusText();
+            });
+        }
+
+        if (compareLocusClearAll) {
+            compareLocusClearAll.addEventListener('click', (e) => {
+                e.preventDefault();
+                compareLocusCheckboxList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                updateCompareLocusText();
+            });
+        }
+    }
+
+    const compareLociBtn = document.getElementById('compare-loci-btn');
     const compareLoading = document.getElementById('compare-loading');
     const compareLoadingText = document.getElementById('compare-loading-text');
     const compareProgressBar = document.getElementById('compare-progress-bar');
@@ -97,7 +206,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (compareShowAllLinksCheckbox) {
         compareShowAllLinksCheckbox.addEventListener('change', () => {
             if (currentCompareParams) {
-                startLocusComparison(currentCompareParams.runId, currentCompareParams.genomeIds, currentCompareParams.dbKey);
+                const selectedLoci = getSelectedCompareLoci();
+                startLocusComparison(currentCompareParams.runId, currentCompareParams.genomeIds, currentCompareParams.dbKey, selectedLoci);
             }
         });
     }
@@ -233,6 +343,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Populate database buttons
             compareDbButtonsContainer.innerHTML = '';
+            compareLocusSelection.classList.add('hidden');
+            if (compareLocusSearchInput) compareLocusSearchInput.value = '';
+            populateCompareLoci([]);
+            
             currentDatabases.forEach(db => {
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-secondary';
@@ -241,17 +355,46 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btn.textContent = db.name;
 
                 btn.addEventListener('click', () => {
-                    // Start comparison
+                    // Highlight selected database button
+                    Array.from(compareDbButtonsContainer.children).forEach(b => {
+                        b.classList.remove('btn-primary');
+                        b.classList.add('btn-secondary');
+                    });
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
+
+                    // Populate options
+                    if (compareLocusSearchInput) compareLocusSearchInput.value = '';
+                    if (db.loci_names) {
+                        populateCompareLoci(db.loci_names);
+                    } else {
+                        populateCompareLoci([]);
+                    }
+                    compareLocusSelection.classList.remove('hidden');
+
                     const genomeIds = Array.from(selectedGenomes);
                     const firstSelected = allResults.find(r => r.genome_id === genomeIds[0]);
                     const runId = firstSelected ? firstSelected.run_id : null;
-                    startLocusComparison(runId, genomeIds, db.key);
+                    currentCompareParams = { runId, genomeIds, dbKey: db.key };
                 });
 
                 compareDbButtonsContainer.appendChild(btn);
             });
 
             compareModal.classList.remove('hidden');
+        });
+    }
+
+    if (compareLociBtn) {
+        compareLociBtn.addEventListener('click', () => {
+            if (!currentCompareParams) return;
+            const selectedLoci = getSelectedCompareLoci();
+            startLocusComparison(
+                currentCompareParams.runId, 
+                currentCompareParams.genomeIds, 
+                currentCompareParams.dbKey,
+                selectedLoci
+            );
         });
     }
 
@@ -267,7 +410,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    async function startLocusComparison(runId, genomeIds, dbKey) {
+    let comparePreMaxState = { top: '', left: '', bottom: '', right: '', width: '', height: '' };
+
+    if (maximizeCompareModal) {
+        maximizeCompareModal.addEventListener('click', () => {
+            if (!compareModal.classList.contains('maximized')) {
+                // Maximize
+                comparePreMaxState = {
+                    top: compareModal.style.top,
+                    left: compareModal.style.left,
+                    bottom: compareModal.style.bottom,
+                    right: compareModal.style.right,
+                    width: compareModal.style.width,
+                    height: compareModal.style.height
+                };
+                compareModal.style.top = '';
+                compareModal.style.left = '';
+                compareModal.style.bottom = '';
+                compareModal.style.right = '';
+                compareModal.style.width = '';
+                compareModal.style.height = '';
+
+                compareModal.classList.add('maximized');
+                maximizeCompareModal.textContent = '🗗';
+                maximizeCompareModal.title = 'Restore Viewport';
+            } else {
+                // Restore
+                compareModal.classList.remove('maximized');
+                compareModal.style.top = comparePreMaxState.top;
+                compareModal.style.left = comparePreMaxState.left;
+                compareModal.style.bottom = comparePreMaxState.bottom;
+                compareModal.style.right = comparePreMaxState.right;
+                compareModal.style.width = comparePreMaxState.width;
+                compareModal.style.height = comparePreMaxState.height;
+
+                maximizeCompareModal.textContent = '⛶';
+                maximizeCompareModal.title = 'Maximize';
+            }
+
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 300);
+        });
+    }
+
+    async function startLocusComparison(runId, genomeIds, dbKey, referenceLoci = []) {
         currentCompareParams = { runId, genomeIds, dbKey };
         compareLoading.classList.remove('hidden');
         compareLoadingText.textContent = "Generating comparison...";
@@ -277,7 +464,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const isLight = document.body.classList.contains('theme-light');
             const showAllLinks = compareShowAllLinksCheckbox?.checked || false;
-            const data = await api.startComparison(runId, genomeIds, dbKey, showAllLinks, !isLight);
+            const data = await api.startComparison(runId, genomeIds, dbKey, showAllLinks, !isLight, referenceLoci);
             const taskId = data.task_id;
 
             if (comparePollingInterval) clearInterval(comparePollingInterval);
@@ -444,7 +631,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             selectAllCheckbox.indeterminate = selectedGenomes.size > 0 && selectedGenomes.size < filteredResults.length;
         }
         if (compareBtn) {
-            compareBtn.disabled = selectedGenomes.size < 2;
+            compareBtn.disabled = selectedGenomes.size < 1;
         }
         const deleteBtn = document.getElementById('delete-selected-btn');
         if (deleteBtn) {
@@ -465,6 +652,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
         document.getElementById(tabId).classList.add('active');
+
+        if (tabId === 'analysis-tab') {
+            applyFilters();
+        }
 
         if (tabId === 'about-tab' && !document.getElementById('about-content').hasAttribute('data-loaded')) {
             document.getElementById('about-content').innerHTML = '<div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p>';
@@ -756,7 +947,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         startRunBtn.disabled = true;
         startRunBtn.textContent = "Uploading...";
-        uploadLock.classList.remove('hidden');
 
         const formData = new FormData();
         selectedFiles.forEach(file => {
@@ -937,7 +1127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         if (speciesResults.length === 0) {
-            const colspan = 1 + (currentDatabases.length * 4);
+            const colspan = 3 + (currentDatabases.length * 4);
             resultsTbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; padding: 2rem;">No results found for ${currentSpecies}. Start a run on the Home tab!</td></tr>`;
             return;
         }
