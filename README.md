@@ -1,32 +1,25 @@
-<div class="parent-container">
-  <div class="centered-child" align="center">
-    <img src="src/kaptive_web/frontend/logo.png" alt="Kaptive" width="600">
-    <br><br>
-    <a href="https://pypi.org/project/kaptive-web/">
-      <img src="https://img.shields.io/pypi/pyversions/kaptive-web" alt="PyPI - Python Version">
-    </a>&nbsp;
-    <a href="https://fastapi.tiangolo.com/">
-      <img src="https://img.shields.io/badge/FastAPI-005571?logo=fastapi" alt="Made with FastAPI">
-    </a>&nbsp;
-    <a href="https://github.com/astral-sh/ruff">
-      <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="ruff">
-    </a>&nbsp;
-    <a href="https://github.com/astral-sh/ty">
-      <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ty/main/assets/badge/v0.json" alt="ty">
-    </a>&nbsp;
-    <a href="https://github.com/psf/black">
-      <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black">
-    </a>
-  </div>
+<div align="center">
+  <img src="src/kaptive_web/frontend/logo.png" alt="Kaptive" width="400">
+  <p>The tool for <em>in silico</em> serotyping</p>
+  <a href="https://pypi.org/project/kaptive-web/">
+    <img src="https://img.shields.io/pypi/pyversions/kaptive-web" alt="PyPI - Python Version">
+  </a>;
+  <a href="https://github.com/astral-sh/ruff">
+    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="ruff">
+  </a>;
+  <a href="https://github.com/astral-sh/ty">
+    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ty/main/assets/badge/v0.json" alt="ty">
+  </a>;
+  <a href="https://fastapi.tiangolo.com/">
+    <img src="https://img.shields.io/badge/FastAPI-005571?logo=fastapi" alt="Made with FastAPI">
+  </a>;
 </div>
 
-**Kaptive** reports information about surface polysaccharide loci (such as capsular K loci and outer core O loci) for *Klebsiella pneumoniae* species complex and *Acinetobacter baumannii* genome assemblies. 
+---
+
+For full **documentation**, including install and usage instructions, **click [here](https://klebgenomics.github.io/Kaptive)**.
 
 **Kaptive Web** is hosted online at [kaptive-web.erc.monash.edu](https://kaptive-web.erc.monash.edu). This repository hosts the open-source code used to run the site, allowing you to deploy Kaptive-Web locally or on your own infrastructure.
-
-For information on how to interpret the results of Kaptive and read about the core algorithms, please visit the [Official Kaptive Docs](https://kaptive.readthedocs.io/en/latest/).
-
----
 
 ## 📖 Background & History
 

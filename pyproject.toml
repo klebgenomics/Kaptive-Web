@@ -49,13 +49,12 @@ dev = [
 
 [project.urls]
 Homepage = "https://kaptive-web.erc.monash.edu/"
-Documentation = "https://klebgenomics.github.io/kaptive-web"
+Documentation = "https://github.com/klebgenomics/Kaptive-Web/blob/main/README.md"
 Repository = "https://github.com/klebgenomics/Kaptive-Web"
 Issues = "https://github.com/klebgenomics/Kaptive-Web/issues"
-Changelog = "https://github.com/klebgenomics/Kaptive-Web/blob/master/CHANGELOG.md"
+Changelog = "https://github.com/klebgenomics/Kaptive-Web/blob/main/CHANGELOG.md"
 
 [project.scripts]
-# This creates a terminal command you can run anywhere after installing
 kaptive-web = "kaptive_web.main:cli"
 
 [build-system]
