@@ -46,6 +46,7 @@ lint:
 
 # Static type-check Python code
 type-check:
+    uv sync --all-groups
     uvx ty check .
 
 # Run all quality checks at once (ideal for local pre-commit testing)
@@ -77,3 +78,11 @@ singularity-build:
 # Build the Apptainer (.sif) image
 apptainer-build:
     sudo apptainer build kaptive-web.sif Apptainer.def
+
+# Build the Python package
+build: clean
+    uv build
+
+# Publish the Python package to PyPI
+publish: build
+    uv publish

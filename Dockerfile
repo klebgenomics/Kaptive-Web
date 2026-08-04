@@ -11,6 +11,10 @@ WORKDIR /app
 # Copy the app source
 COPY . /app/
 
+# Accept the version explicitly to avoid needing git installed in the slim container
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
+
 # Install the app (uses pip to install pyproject.toml dependencies)
 RUN pip install --no-cache-dir .
 
