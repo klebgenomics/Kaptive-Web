@@ -70,7 +70,7 @@ app = FastAPI(
     version=_VERSION,
     default_response_class=KaptiveORJSONResponse,
     lifespan=lifespan,
-    docs_url='/docs',
+    docs_url="/docs",
     middleware=[
         Middleware(GZipMiddleware, minimum_size=1000),
         Middleware(

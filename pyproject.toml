@@ -42,7 +42,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-test = ["pytest>=9.0.0", "pytest-cov"]
+test = []
 dev = [
     { include-group = "test" },
 ]
@@ -72,9 +72,6 @@ version-file = "src/kaptive_web/_version.py"
 packages = ["src/kaptive_web"]
 include = ["src/kaptive_web/frontend/**/*"]
 
-[tool.pytest.ini_options]
-addopts = "--doctest-modules"
-testpaths = ["tests", "src"]
 
 [tool.ruff]
 line-length = 120

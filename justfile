@@ -11,9 +11,8 @@ default:
 sync:
     uv sync
 
-# Run Python pytest suite
 test: sync
-    uv run pytest tests/
+    uvx --python 3.13 --with . karva test
 
 # Update dependencies and lockfile
 update:
@@ -24,7 +23,6 @@ update:
 clean:
     rm -rf .ruff_cache
     find . -type d -name "__pycache__" -exec rm -rf {} +
-    find . -type d -name ".pytest_cache" -exec rm -rf {} +
     find . -type f -name "*.pyc" -delete
 
 # Deep clean including the virtual environment and database
