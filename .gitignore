@@ -215,3 +215,5 @@ __marimo__/
 # Antigravity
 .agents/
 SKILLS.md
+.karva_cache/
+kaptive_web.db

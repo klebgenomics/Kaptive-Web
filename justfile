@@ -21,7 +21,7 @@ update:
 
 # Clean caches and temporary files
 clean:
-    rm -rf .ruff_cache
+    rm -rf .cache .ruff_cache .karva_cache build dist     
     find . -type d -name "__pycache__" -exec rm -rf {} +
     find . -type f -name "*.pyc" -delete
 
