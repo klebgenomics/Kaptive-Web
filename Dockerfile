@@ -22,4 +22,4 @@ RUN pip install --no-cache-dir .
 EXPOSE 8000
 
 # Set the default entrypoint for the container
-CMD ["uvicorn", "kaptive_web.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "kaptive_web.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
