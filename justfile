@@ -43,7 +43,7 @@ lint:
     uvx ruff check --fix .
 
 # Static type-check Python code
-type-check:
+type-check: sync
     uvx ty check .
 
 # Run all quality checks at once (ideal for local pre-commit testing)
