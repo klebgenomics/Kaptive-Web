@@ -82,3 +82,6 @@ convention = "google"
 [tool.ty.rules]
 missing-type-argument = "error"
 possibly-unresolved-reference = "warn"
+
+[tool.karva.profile.default.coverage]
+branch = true
