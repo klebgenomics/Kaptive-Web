@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/kaptive_web.db
+      - KAPTIVE_DB_DIR=/app/data/kaptive_dbs
     env_file:
       - .env
     volumes:
