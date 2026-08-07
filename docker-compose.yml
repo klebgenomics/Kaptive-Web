@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   caddy:
     image: caddy:2-alpine
@@ -15,6 +13,7 @@ services:
       - kaptive-web
 
   kaptive-web:
+    image: ghcr.io/klebgenomics/kaptive-web:latest
     build: .
     restart: unless-stopped
     environment:
