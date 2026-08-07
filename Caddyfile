@@ -1,4 +1,5 @@
 # Replace 'localhost' with your actual domain when deploying to production
-localhost {
+kaptive-web.erc.monash.edu {
+    tls /certs/kaptive-web_erc_monash_edu_cert.pem /certs/kaptive-web_erc_monash_edu.key
     reverse_proxy kaptive-web:8000
 }
