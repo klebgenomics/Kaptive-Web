@@ -12,7 +12,7 @@ sync:
     uv sync
 
 test: sync
-    uvx --python 3.13 --with . karva test
+    uvx karva test
 
 # Update dependencies and lockfile
 update:
@@ -44,7 +44,6 @@ lint:
 
 # Static type-check Python code
 type-check:
-    uv sync --all-groups
     uvx ty check .
 
 # Run all quality checks at once (ideal for local pre-commit testing)

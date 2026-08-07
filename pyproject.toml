@@ -41,12 +41,6 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.64b0",
 ]
 
-[dependency-groups]
-test = []
-dev = [
-    { include-group = "test" },
-]
-
 [project.urls]
 Homepage = "https://kaptive-web.erc.monash.edu/"
 Documentation = "https://github.com/klebgenomics/Kaptive-Web/blob/main/README.md"
@@ -71,7 +65,6 @@ version-file = "src/kaptive_web/_version.py"
 # This is the crucial part: it tells the builder to include your HTML/JS files
 packages = ["src/kaptive_web"]
 include = ["src/kaptive_web/frontend/**/*"]
-
 
 [tool.ruff]
 line-length = 120

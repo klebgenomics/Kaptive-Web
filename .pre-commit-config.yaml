@@ -19,3 +19,9 @@ repos:
     language: system
     types: [python]
     pass_filenames: false
+  - id: karva-test
+    name: karva test
+    entry: uvx karva test
+    language: system
+    types: [python]
+    pass_filenames: false
